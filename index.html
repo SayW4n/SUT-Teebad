@@ -55,7 +55,7 @@
 <script>
   const SUPABASE_URL = 'https://kckdkiyhktvqtibflvrl.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtja2RraXloa3R2cXRpYmZsdnJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Nzk2NDIsImV4cCI6MjA5ODM1NTY0Mn0.QxjCsXNk-KiM9ItvyCGtH2GkNG84GpNykwuEy6_AKm0';
-  const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  const sbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
   const emailInput = document.getElementById('auth-email');
   const loginBtn = document.getElementById('btn-login');
   const toast = document.getElementById('toast');
@@ -67,7 +67,7 @@
   }
 
   // เช็คสถานะ: ถ้ามี Session อยู่แล้ว หรือเพิ่งกดลิงก์จากอีเมลเข้ามา ให้เด้งไปหน้า dashboard.html
-  supabase.auth.onAuthStateChange((event, session) => {
+  supabase.sbClientauth.onAuthStateChange((event, session) => {
     if (session) {
       window.location.href = 'dashboard.html';
     }
@@ -83,10 +83,10 @@
     loginBtn.disabled = true;
     loginBtn.textContent = 'กำลังส่งลิงก์...';
     
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabasesbClient.signInWithOtp({
       email: email,
       options: {
-        // ให้ลิงก์เด้งกลับมาที่หน้า login.html เพื่อจัดการ Token ก่อนส่งไปหน้า app.html
+        // ให้ลิงก์เด้งกลับมาที่หน้า login.html เพื่อจัดการ Token ก่อนส่งไปหน้า dashboard.html
         emailRedirectTo: window.location.origin + window.location.pathname
       }
     });
