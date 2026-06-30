@@ -55,8 +55,7 @@
 <script>
   const SUPABASE_URL = 'https://kckdkiyhktvqtibflvrl.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtja2RraXloa3R2cXRpYmZsdnJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Nzk2NDIsImV4cCI6MjA5ODM1NTY0Mn0.QxjCsXNk-KiM9ItvyCGtH2GkNG84GpNykwuEy6_AKm0';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+  const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
   const emailInput = document.getElementById('auth-email');
   const loginBtn = document.getElementById('btn-login');
   const toast = document.getElementById('toast');
@@ -67,10 +66,10 @@
     setTimeout(() => toast.classList.remove('show'), 3000);
   }
 
-  // เช็คสถานะ: ถ้ามี Session อยู่แล้ว หรือเพิ่งกดลิงก์จากอีเมลเข้ามา ให้เด้งไปหน้า app.html
+  // เช็คสถานะ: ถ้ามี Session อยู่แล้ว หรือเพิ่งกดลิงก์จากอีเมลเข้ามา ให้เด้งไปหน้า dashboard.html
   supabase.auth.onAuthStateChange((event, session) => {
     if (session) {
-      window.location.href = 'app.html';
+      window.location.href = 'dashboard.html';
     }
   });
 
