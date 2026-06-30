@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Supabase JS client (handles all calls to our online database) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
@@ -71,7 +70,7 @@
     max-width: 520px;
   }
 
-  /* net divider — signature element: mesh + top tape, like a badminton net */
+  /* net divider */
   .net-divider{
     height: 22px;
     background-color: var(--court-green);
@@ -158,8 +157,8 @@
 
   .checkbox-line{ display:flex; align-items:center; gap:6px; font-size: 13.5px; color: var(--muted); }
 
-  /* ---------- Create panel ---------- */
-  #create-panel.hidden{ display:none; }
+  /* ---------- Create / Auth panel ---------- */
+  .hidden{ display:none !important; }
   #create-panel h2{ margin: 0 0 4px; font-size: 19px; color: var(--court-blue-dark); }
   .form-note{ font-size: 13px; color: var(--muted); margin: 0 0 16px; }
   .form-grid{
@@ -182,7 +181,6 @@
   }
   .type-toggle input{ display:none; }
   .type-toggle input:checked + span{ color: inherit; }
-  .type-toggle label.t-need{ }
   .type-toggle label:has(input:checked).t-need{ border-color: var(--court-green); background: rgba(45,106,79,0.08); color: var(--court-green); }
   .type-toggle label:has(input:checked).t-find{ border-color: var(--cork-orange); background: rgba(224,118,47,0.10); color: var(--cork-orange-dark); }
 
@@ -250,7 +248,7 @@
 
   .icon-btn{
     background:#fff; border:1px solid var(--line); border-radius: 8px; padding: 5px 7px; color: var(--muted);
-    display:flex; align-items:center;
+    display:flex; align-items:center; cursor: pointer;
   }
   .icon-btn:hover{ color: #b33; border-color:#b33; }
 
@@ -259,7 +257,6 @@
     text-align:center; padding: 48px 20px; color: var(--muted);
     background: var(--card-cream); border: 1px dashed var(--line); border-radius: var(--radius-lg);
   }
-  .empty.hidden, .loading.hidden{ display:none; }
   .empty h3{ color: var(--ink); margin: 10px 0 6px; font-size: 18px; }
   .empty p{ margin: 0 0 16px; font-size: 13.5px; }
 
@@ -292,13 +289,31 @@
 
 <header class="hero">
   <h1 class="hero-title">SUT Teebad <span>🏸</span></h1>
-  <p class="hero-sub">หาคนตี หาก๊วน สำหรับชาว มทส. และพื้นที่ใกล้เคียง จ.นครราชสีมา — โพสต์เดียว นัดได้ทั้งคอร์ท</p>
+  <p class="hero-sub">หาคนตี หาก๊วน สำหรับชาว มทส. และพื้นที่ใกล้เคียง — โพสต์เดียว นัดได้ทั้งคอร์ท</p>
 </header>
 <div class="net-divider" aria-hidden="true"></div>
 
 <div class="wrap">
 
-  <!-- Location + filters -->
+  <section class="panel" id="auth-panel" aria-label="ระบบเข้าสู่ระบบ">
+    <div id="login-view">
+      <h3 style="margin-top:0; color:var(--court-blue-dark); font-size:18px;">เข้าสู่ระบบ (สำหรับนักศึกษา มทส.)</h3>
+      <p class="form-note" style="margin-bottom:12px;">ใช้อีเมล @g.sut.ac.th เพื่อรับลิงก์เข้าใช้งานโดยไม่ต้องใช้รหัสผ่าน</p>
+      <div class="row">
+        <input type="email" id="auth-email" class="text-input" placeholder="เช่น B65xxxxx@g.sut.ac.th" style="flex:1; max-width:300px;" />
+        <button type="button" id="btn-login" class="btn btn-primary">ส่งลิงก์เข้าสู่ระบบ</button>
+      </div>
+    </div>
+    <div id="user-view" class="hidden">
+      <div class="row">
+        <span class="nav-label">เข้าสู่ระบบในชื่อ:</span>
+        <span class="chip" id="user-display" aria-pressed="true" style="background:var(--court-green); border-color:var(--court-green);"></span>
+        <span class="spacer"></span>
+        <button type="button" id="btn-logout" class="btn btn-ghost btn-sm">ออกจากระบบ</button>
+      </div>
+    </div>
+  </section>
+
   <section class="panel" aria-label="ตำแหน่งและตัวกรอง">
     <div class="row">
       <span class="nav-label">ตำแหน่งของฉัน</span>
@@ -338,14 +353,13 @@
     <div class="row">
       <button type="button" id="reset-filters" class="btn btn-ghost btn-sm">รีเซ็ตตัวกรอง</button>
       <span class="spacer"></span>
-      <button type="button" id="toggle-create" class="btn btn-primary">+ ลงประกาศหาก๊วน/หาคน</button>
+      <button type="button" id="toggle-create" class="btn btn-primary" style="display:none;">+ ลงประกาศหาก๊วน/หาคน</button>
     </div>
   </section>
 
-  <!-- Create panel -->
   <section class="panel hidden" id="create-panel" aria-label="ลงประกาศใหม่">
     <h2>ลงประกาศใหม่</h2>
-    <p class="form-note">ประกาศนี้จะแสดงให้ทุกคนที่เปิดแอปนี้เห็น รวมถึงช่องทางติดต่อที่คุณกรอกไว้ — กรอกเท่าที่สบายใจให้คนติดต่อกลับได้นะ</p>
+    <p class="form-note">ประกาศนี้จะแสดงให้ทุกคนที่เปิดแอปนี้เห็น รวมถึงช่องทางติดต่อที่คุณกรอกไว้</p>
     <form id="post-form">
       <div class="field full">
         <label>ประเภทประกาศ</label>
@@ -365,11 +379,11 @@
         <div class="field full">
           <label for="f-venue">ชื่อสนาม/สถานที่</label>
           <input id="f-venue" name="venue" class="text-input" type="text" required maxlength="80"
-                 placeholder="เช่น สนามแบดมินตันเทพารักษ์ คอร์ท 3" />
+                 placeholder="เช่น ยิม 2 คอร์ท 7" />
         </div>
 
         <div class="field">
-          <label for="f-area">เขต/พื้นที่ (ใช้คำนวณระยะทาง)</label>
+          <label for="f-area">ยิม/สถานที่ (ใช้คำนวณระยะทาง)</label>
           <select id="f-area" name="areaId" class="text-input" required></select>
         </div>
 
@@ -395,21 +409,21 @@
         </div>
 
         <div class="field">
-          <label for="f-nickname">ชื่อเล่นของคุณ</label>
+          <label for="f-nickname">ชื่อเรียกของคุณ</label>
           <input id="f-nickname" name="nickname" class="text-input" type="text" required maxlength="30"
-                 placeholder="ให้คนอื่นรู้จักคุณ" />
+                 placeholder="ชื่อเล่น หรือรหัส นศ." />
         </div>
 
         <div class="field full">
-          <label for="f-contact">ช่องทางติดต่อ</label>
+          <label for="f-contact">ช่องทางติดต่อเบื้องต้น</label>
           <input id="f-contact" name="contact" class="text-input" type="text" required maxlength="60"
-                 placeholder="Line ID หรือเบอร์โทร" />
+                 placeholder="Line ID หรือ Facebook" />
         </div>
 
         <div class="field full">
           <label for="f-details">รายละเอียดเพิ่มเติม <span class="hint">(ไม่บังคับ)</span></label>
           <textarea id="f-details" name="details" maxlength="300"
-                    placeholder="ค่าสนาม, จุดนัดพบ, มีลูกแบดให้ไหม ฯลฯ"></textarea>
+                    placeholder="ค่าสนาม, มีลูกให้ไหม ฯลฯ"></textarea>
         </div>
       </div>
 
@@ -420,7 +434,6 @@
     </form>
   </section>
 
-  <!-- Feed -->
   <section aria-label="รายการประกาศ">
     <div class="status-bar">
       <span class="count" id="result-count">—</span>
@@ -432,14 +445,14 @@
     <div class="empty hidden" id="empty-state">
       <div style="font-size:32px;">🏸</div>
       <h3 id="empty-title">ยังไม่มีประกาศ</h3>
-      <p id="empty-desc">เป็นคนแรกที่ลงประกาศหาก๊วน หรือหาคนตีแบดในย่านนี้สิ!</p>
-      <button type="button" class="btn btn-primary" id="empty-cta">+ ลงประกาศเลย</button>
+      <p id="empty-desc">เป็นคนแรกที่ลงประกาศหาก๊วน หรือหาคนตีแบดสิ!</p>
+      <button type="button" class="btn btn-primary" id="empty-cta" style="display:none;">+ ลงประกาศเลย</button>
     </div>
 
     <div class="post-grid hidden" id="post-list"></div>
   </section>
 
-  <p class="foot-note">บอร์ดนี้เก็บข้อมูลออนไลน์ด้วย Supabase ทุกคนที่เปิดเว็บนี้ (รวมถึงผ่านมือถือ จากที่ไหนก็ได้) จะเห็นประกาศและช่องทางติดต่อที่คุณกรอกไว้ — โปรดระวังการให้ข้อมูลส่วนตัวที่ไม่จำเป็น</p>
+  <p class="foot-note">บอร์ดนี้เก็บข้อมูลออนไลน์ด้วย Supabase เพื่อความปลอดภัย โปรดระวังการให้ข้อมูลส่วนตัว</p>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -448,20 +461,11 @@
 (function(){
   "use strict";
 
-  /* ---------------- Reference data ---------------- */
+  /* ---------------- Data & Config ---------------- */
+  // อัปเดตพิกัดให้เหลือแค่ยิมที่กำหนด
   var AREAS = [
-    { id:'sut_campus',     name:'มทส. (ในและรอบมหาวิทยาลัย)',     lat:14.8818, lng:102.0207 },
-    { id:'korat_city',     name:'ในตัวเมืองโคราช (เขตเทศบาลนคร)', lat:14.9724, lng:102.1001 },
-    { id:'central_korat',  name:'เซ็นทรัล โคราช',                  lat:14.9972, lng:102.1160 },
-    { id:'jira_junction',  name:'จิระ (สถานีรถไฟ)',                lat:14.9674, lng:102.1017 },
-    { id:'kham_thale_so',  name:'ขามทะเลสอ',                       lat:15.0673, lng:101.9120 },
-    { id:'sung_noen',      name:'สูงเนิน',                         lat:14.8641, lng:101.8436 },
-    { id:'sikhio',         name:'สีคิ้ว',                          lat:14.9701, lng:101.5703 },
-    { id:'pak_chong',      name:'ปากช่อง',                         lat:14.7129, lng:101.4245 },
-    { id:'chaloem_phra_kiat', name:'เฉลิมพระเกียรติ',              lat:15.0018, lng:102.2777 },
-    { id:'chok_chai',      name:'โชคชัย',                          lat:14.7531, lng:102.2090 },
-    { id:'chakkarat',      name:'จักราช',                          lat:14.9216, lng:102.4839 },
-    { id:'other',          name:'อื่นๆ ในนครราชสีมา / นอกพื้นที่', lat:null,    lng:null }
+    { id:'gym1', name:'ยิม 1 (มทส.)', lat:14.8722, lng:102.0156 },
+    { id:'gym2', name:'ยิม 2 (มทส.)', lat:14.8725, lng:102.0160 }
   ];
 
   var LEVELS = [
@@ -478,8 +482,33 @@
     { code:'B+', label:'B+ · มือเซียน+',            hue:6   },
     { code:'A',  label:'A · มือโปร',                hue:355 }
   ];
-  var OPEN_LEVEL = { code:'OPEN', label:'เปิดทุกระดับ (เล่นด้วยกันได้ทุกมือ)', hue:null };
+  var OPEN_LEVEL = { code:'OPEN', label:'เปิดทุกระดับ (เล่นด้วยกันได้)', hue:null };
 
+  // >>> ใส่ KEY ของคุณตรงนี้ <<<
+  var SUPABASE_URL = 'https://kckdkiyhktvqtibflvrl.supabase.co'; 
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtja2RraXloa3R2cXRpYmZsdnJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Nzk2NDIsImV4cCI6MjA5ODM1NTY0Mn0.QxjCsXNk-KiM9ItvyCGtH2GkNG84GpNykwuEy6_AKm0';
+
+  var sb = null;
+  function getSupabase(){
+    if (sb) return sb;
+    if (!window.supabase || SUPABASE_URL === 'YOUR_SUPABASE_URL'){
+      console.error('โปรดใส่ SUPABASE_URL และ SUPABASE_ANON_KEY ให้ถูกต้อง');
+      return null;
+    }
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return sb;
+  }
+
+  /* ---------------- State ---------------- */
+  var allPosts = [];
+  var visiblePosts = [];
+  var myLocation = null;
+  var interestedIds = [];
+  var filters = { type:'all', level:'all', maxDistance:15, unlimited:false, query:'' };
+  var sortMode = 'distance';
+  var currentUser = null;
+
+  /* ---------------- Helpers ---------------- */
   function levelByCode(code){
     if (code === 'OPEN') return OPEN_LEVEL;
     for (var i=0;i<LEVELS.length;i++){ if (LEVELS[i].code === code) return LEVELS[i]; }
@@ -488,15 +517,12 @@
   function levelColor(code){
     if (code === 'OPEN') return '#6B7D74';
     var lv = levelByCode(code);
-    if (!lv) return '#6B7D74';
-    return 'hsl(' + lv.hue + ', 60%, 40%)';
+    return lv ? 'hsl(' + lv.hue + ', 60%, 40%)' : '#6B7D74';
   }
   function areaById(id){
     for (var i=0;i<AREAS.length;i++){ if (AREAS[i].id === id) return AREAS[i]; }
     return null;
   }
-
-  /* ---------------- Helpers ---------------- */
   function escapeHtml(str){
     return String(str == null ? '' : str).replace(/[&<>"']/g, function(c){
       return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
@@ -521,10 +547,7 @@
     if (hr < 24) return hr + ' ชั่วโมงที่แล้ว';
     var day = Math.floor(hr/24);
     if (day < 7) return day + ' วันที่แล้ว';
-    var wk = Math.floor(day/7);
-    if (wk < 5) return wk + ' สัปดาห์ที่แล้ว';
-    var mo = Math.floor(day/30);
-    return mo + ' เดือนที่แล้ว';
+    return Math.floor(day/30) + ' เดือนที่แล้ว';
   }
   function formatDate(dstr){
     if (!dstr) return '';
@@ -533,10 +556,8 @@
     var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
     var y = parseInt(parts[0],10) + 543;
     var mo = months[parseInt(parts[1],10)-1] || '';
-    var d = parseInt(parts[2],10);
-    return d + ' ' + mo + ' ' + y;
+    return parseInt(parts[2],10) + ' ' + mo + ' ' + y;
   }
-
   function svgIcon(name){
     var icons = {
       pin: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-7.5-7-12a7 7 0 1 1 14 0c0 4.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
@@ -550,43 +571,13 @@
     return icons[name] || '';
   }
 
-  /* ---------------- Supabase config ---------------- */
-  // 1) ไปที่ Supabase Dashboard > Project Settings > API
-  // 2) คัดลอก "Project URL" และ "anon public" key มาใส่ตรงนี้
-  // หมายเหตุ: anon key เป็นคีย์ที่ "ตั้งใจให้เปิดเผยได้" ความปลอดภัยของข้อมูล
-  // มาจาก Row Level Security (RLS) policy ที่ตั้งไว้ในฐานข้อมูล ไม่ใช่การซ่อนคีย์นี้
-  var SUPABASE_URL = 'https://kckdkiyhktvqtibflvrl.supabase.co';
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtja2RraXloa3R2cXRpYmZsdnJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Nzk2NDIsImV4cCI6MjA5ODM1NTY0Mn0.QxjCsXNk-KiM9ItvyCGtH2GkNG84GpNykwuEy6_AKm0';
+  function localGet(key){ try { return window.localStorage.getItem(key); } catch (e){ return null; } }
+  function localSet(key, value){ try { window.localStorage.setItem(key, value); return true; } catch (e){ return false; } }
 
-  var sb = null;
-  function getSupabase(){
-    if (sb) return sb;
-    if (!window.supabase || SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1){
-      console.error('ยังไม่ได้ตั้งค่า SUPABASE_URL / SUPABASE_ANON_KEY ในไฟล์นี้');
-      return null;
-    }
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return sb;
-  }
-
-  /* ---------------- Local (per-device) storage helpers ---------------- */
-  // ข้อมูลส่วนตัว เช่น โพสต์ของฉัน / ที่กดสนใจไว้ / ตำแหน่งของฉัน
-  // ไม่จำเป็นต้องแชร์ข้ามอุปกรณ์ จึงเก็บไว้ใน localStorage ของเบราว์เซอร์พอ
-  function localGet(key){
-    try { return window.localStorage.getItem(key); }
-    catch (e){ return null; }
-  }
-  function localSet(key, value){
-    try { window.localStorage.setItem(key, value); return true; }
-    catch (e){ return false; }
-  }
-
-  /* ---------------- Row <-> Post field mapping ---------------- */
-  // ตาราง Supabase ใช้ snake_case (เช่น area_id, people_needed)
-  // ฝั่ง JS ใช้ camelCase (เช่น areaId, peopleNeeded) — สองฟังก์ชันนี้แปลงกลับไปมา
   function rowToPost(row){
     return {
       id: row.id,
+      userId: row.user_id, // ดึงเจ้าของโพสต์มาใช้
       type: row.type,
       venue: row.venue,
       areaId: row.area_id,
@@ -603,6 +594,7 @@
   }
   function postToInsertRow(data){
     return {
+      user_id: currentUser ? currentUser.id : null, // บันทึกพร้อม User ID
       type: data.postType,
       venue: data.venue.trim(),
       area_id: data.areaId,
@@ -616,18 +608,17 @@
     };
   }
 
-  /* ---------------- State ---------------- */
-  var allPosts = [];
-  var visiblePosts = [];
-  var myLocation = null;      // {lat, lng, areaId, source}
-  var myPostIds = [];
-  var interestedIds = [];
-  var filters = { type:'all', level:'all', maxDistance:15, unlimited:false, query:'' };
-  var sortMode = 'distance';
-
-  /* ---------------- DOM refs ---------------- */
+  /* ---------------- DOM refs & Setup ---------------- */
   var el = {};
   function cacheDom(){
+    el.authPanel = document.getElementById('auth-panel');
+    el.loginView = document.getElementById('login-view');
+    el.userView = document.getElementById('user-view');
+    el.authEmail = document.getElementById('auth-email');
+    el.btnLogin = document.getElementById('btn-login');
+    el.btnLogout = document.getElementById('btn-logout');
+    el.userDisplay = document.getElementById('user-display');
+
     el.locationSelect = document.getElementById('location-select');
     el.geoBtn = document.getElementById('geo-btn');
     el.locationStatus = document.getElementById('location-status');
@@ -638,6 +629,7 @@
     el.distanceUnlimited = document.getElementById('distance-unlimited');
     el.searchInput = document.getElementById('search-input');
     el.resetFilters = document.getElementById('reset-filters');
+    
     el.toggleCreate = document.getElementById('toggle-create');
     el.createPanel = document.getElementById('create-panel');
     el.cancelCreate = document.getElementById('cancel-create');
@@ -646,6 +638,7 @@
     el.fLevel = document.getElementById('f-level');
     el.fPeopleLabel = document.getElementById('f-people-label');
     el.fDate = document.getElementById('f-date');
+    
     el.resultCount = document.getElementById('result-count');
     el.resultNote = document.getElementById('result-note');
     el.loadingState = document.getElementById('loading-state');
@@ -666,28 +659,91 @@
     toastTimer = setTimeout(function(){ el.toast.classList.remove('show'); }, 2600);
   }
 
-  /* ---------------- Populate static selects ---------------- */
+  /* ---------------- Auth System ---------------- */
+  function setupAuth(){
+    var client = getSupabase();
+    if (!client) return;
+
+    client.auth.getSession().then(function(res){
+      handleSessionUpdate(res.data.session);
+    });
+
+    client.auth.onAuthStateChange(function(event, session){
+      handleSessionUpdate(session);
+    });
+
+    el.btnLogin.addEventListener('click', async function(){
+      var email = el.authEmail.value.trim().toLowerCase();
+      if (!email || email.indexOf('@g.sut.ac.th') === -1){
+        showToast('กรุณาใช้อีเมล @g.sut.ac.th ของมหาวิทยาลัยครับ');
+        return;
+      }
+      
+      el.btnLogin.disabled = true;
+      el.btnLogin.textContent = 'กำลังส่งลิงก์...';
+      
+      var res = await client.auth.signInWithOtp({
+        email: email,
+        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+      });
+
+      if (res.error) {
+        showToast('เกิดข้อผิดพลาด: ' + res.error.message);
+        el.btnLogin.disabled = false;
+        el.btnLogin.textContent = 'ส่งลิงก์เข้าสู่ระบบ';
+      } else {
+        showToast('ส่งลิงก์ไปที่อีเมลแล้ว! กรุณาเช็คกล่องจดหมายของคุณ');
+        el.btnLogin.textContent = 'ส่งสำเร็จ เช็คอีเมลเลย!';
+      }
+    });
+
+    el.btnLogout.addEventListener('click', async function(){
+      await client.auth.signOut();
+      showToast('ออกจากระบบแล้ว');
+    });
+  }
+
+  function handleSessionUpdate(session){
+    if (session && session.user){
+      currentUser = session.user;
+      el.loginView.classList.add('hidden');
+      el.userView.classList.remove('hidden');
+      
+      var studentId = currentUser.email.split('@')[0].toUpperCase();
+      el.userDisplay.textContent = '👤 ' + studentId;
+      
+      el.toggleCreate.style.display = 'block'; 
+      el.emptyCta.style.display = 'inline-block';
+      refreshFeed(); // รีเฟรชเพื่อเช็คสิทธิ์ลบโพสต์
+    } else {
+      currentUser = null;
+      el.loginView.classList.remove('hidden');
+      el.userView.classList.add('hidden');
+      
+      el.toggleCreate.style.display = 'none'; 
+      el.emptyCta.style.display = 'none';
+      closeCreatePanel();
+      refreshFeed();
+    }
+  }
+
+  /* ---------------- UI Initialization ---------------- */
   function populateAreaSelects(){
     var opts = AREAS.map(function(a){ return '<option value="' + a.id + '">' + escapeHtml(a.name) + '</option>'; }).join('');
     el.fArea.innerHTML = opts;
-
-    var locOpts = '<option value="">เลือกเขต/พื้นที่ของฉัน...</option>' + opts;
-    el.locationSelect.innerHTML = locOpts;
+    el.locationSelect.innerHTML = '<option value="">เลือกยิม/พื้นที่ของคุณ...</option>' + opts;
   }
   function populateLevelSelects(){
     var levelOpts = '<option value="OPEN">' + escapeHtml(OPEN_LEVEL.label) + '</option>' +
       LEVELS.map(function(l){ return '<option value="' + l.code + '">' + escapeHtml(l.label) + '</option>'; }).join('');
     el.fLevel.innerHTML = levelOpts;
-
     el.levelFilter.innerHTML = '<option value="all">ทุกระดับมือ</option>' + levelOpts;
   }
 
-  /* ---------------- Location ---------------- */
+  /* ---------------- Location Processing ---------------- */
   function loadMyLocation(){
     var raw = localGet('my-location');
-    if (raw){
-      try { myLocation = JSON.parse(raw); } catch(e){ myLocation = null; }
-    }
+    if (raw){ try { myLocation = JSON.parse(raw); } catch(e){ myLocation = null; } }
   }
   function updateLocationUI(){
     if (myLocation && myLocation.source === 'geo'){
@@ -698,158 +754,90 @@
       el.locationStatus.textContent = '';
     } else {
       el.locationSelect.value = '';
-      el.locationStatus.textContent = 'ยังไม่ระบุตำแหน่ง — เลือกเขตหรือกดใช้ตำแหน่งปัจจุบัน';
+      el.locationStatus.textContent = 'ยังไม่ระบุตำแหน่ง';
     }
   }
-  async function setMyLocationFromArea(areaId){
-    if (!areaId){ return; }
+  function setMyLocationFromArea(areaId){
+    if (!areaId) return;
     var area = areaById(areaId);
-    myLocation = {
-      areaId: areaId,
-      lat: area ? area.lat : null,
-      lng: area ? area.lng : null,
-      source: 'manual'
-    };
+    myLocation = { areaId: areaId, lat: area ? area.lat : null, lng: area ? area.lng : null, source: 'manual' };
     localSet('my-location', JSON.stringify(myLocation));
     computeDistances();
     refreshFeed();
     updateLocationUI();
   }
   function useGeolocation(){
-    if (!('geolocation' in navigator)){
-      showToast('เบราว์เซอร์นี้ไม่รองรับการขอตำแหน่ง ลองเลือกเขตเองด้านบนนะ');
-      return;
-    }
+    if (!('geolocation' in navigator)){ showToast('เบราว์เซอร์ไม่รองรับ GPS'); return; }
     showToast('กำลังขอตำแหน่งของคุณ...');
     navigator.geolocation.getCurrentPosition(function(pos){
-      myLocation = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        areaId: null,
-        source: 'geo'
-      };
+      myLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, areaId: null, source: 'geo' };
       localSet('my-location', JSON.stringify(myLocation));
-      computeDistances();
-      refreshFeed();
-      updateLocationUI();
+      computeDistances(); refreshFeed(); updateLocationUI();
       showToast('ใช้ตำแหน่งปัจจุบันของคุณแล้ว 📍');
-    }, function(){
-      showToast('ขอตำแหน่งไม่สำเร็จ ลองเลือกเขตด้วยตนเองด้านบนนะ');
-    }, { timeout: 8000 });
+    }, function(){ showToast('ขอตำแหน่งไม่สำเร็จ ลองเลือกเองนะ'); }, { timeout: 8000 });
   }
-
   function computeDistances(){
     allPosts.forEach(function(p){
       var area = areaById(p.areaId);
       if (myLocation && myLocation.lat != null && area && area.lat != null){
         p._distanceKm = haversineKm(myLocation.lat, myLocation.lng, area.lat, area.lng);
-      } else {
-        p._distanceKm = null;
-      }
+      } else { p._distanceKm = null; }
     });
   }
 
-  /* ---------------- Posts: load / create / delete / interest ---------------- */
+  /* ---------------- Data Fetching & Operations ---------------- */
   function loadPersonalLists(){
-    var myRaw = localGet('my-post-ids');
-    try { myPostIds = myRaw ? JSON.parse(myRaw) : []; } catch(e){ myPostIds = []; }
     var intRaw = localGet('interested-ids');
     try { interestedIds = intRaw ? JSON.parse(intRaw) : []; } catch(e){ interestedIds = []; }
   }
-
   async function loadPosts(){
     var client = getSupabase();
-    if (!client){
-      showToast('ยังไม่ได้ตั้งค่าฐานข้อมูล (Supabase) ในไฟล์นี้');
-      allPosts = [];
-      return;
-    }
+    if (!client) { el.loadingState.textContent = "ยังไม่ได้ตั้งค่า Supabase API"; return; }
     var res = await client.from('posts').select('*').order('created_at', { ascending: false });
-    if (res.error){
-      console.error('loadPosts error', res.error);
-      showToast('โหลดประกาศไม่สำเร็จ ลองรีเฟรชหน้าใหม่นะ');
-      allPosts = [];
-      return;
-    }
+    if (res.error) { showToast('โหลดประกาศไม่สำเร็จ'); allPosts = []; return; }
     allPosts = (res.data || []).map(rowToPost);
   }
-
   async function createPost(data){
     var client = getSupabase();
-    if (!client){
-      showToast('ยังไม่ได้ตั้งค่าฐานข้อมูล (Supabase) ในไฟล์นี้');
-      return null;
-    }
     var res = await client.from('posts').insert([postToInsertRow(data)]).select().single();
-    if (res.error || !res.data){
-      console.error('createPost error', res.error);
-      showToast('ลงประกาศไม่สำเร็จ ลองใหม่อีกครั้งนะ');
-      return null;
-    }
-    var post = rowToPost(res.data);
-    myPostIds.push(post.id);
-    localSet('my-post-ids', JSON.stringify(myPostIds));
-    return post;
+    if (res.error || !res.data){ showToast('ลงประกาศไม่สำเร็จ'); return null; }
+    return rowToPost(res.data);
   }
-
   async function deletePost(id){
     var client = getSupabase();
-    if (!client) return;
     var res = await client.from('posts').delete().eq('id', id);
-    if (res.error){
-      console.error('deletePost error', res.error);
-      showToast('ลบประกาศไม่สำเร็จ ลองใหม่อีกครั้งนะ');
-      return;
-    }
+    if (res.error){ showToast('ลบประกาศไม่สำเร็จ'); return; }
     allPosts = allPosts.filter(function(p){ return p.id !== id; });
-    myPostIds = myPostIds.filter(function(x){ return x !== id; });
-    localSet('my-post-ids', JSON.stringify(myPostIds));
-    refreshFeed();
-    showToast('ลบประกาศแล้ว');
+    refreshFeed(); showToast('ลบประกาศแล้ว');
   }
-
   async function toggleInterest(post){
     var client = getSupabase();
     if (!client) return;
     var already = interestedIds.indexOf(post.id) !== -1;
     var newCount = Math.max(0, (post.interestCount || 0) + (already ? -1 : 1));
-
-    // อัปเดตหน้าจอก่อนทันที (optimistic update) แล้วค่อยยืนยันกับฐานข้อมูล
     post.interestCount = newCount;
-    if (already){
-      interestedIds = interestedIds.filter(function(x){ return x !== post.id; });
-    } else {
-      interestedIds.push(post.id);
-    }
+    if (already){ interestedIds = interestedIds.filter(function(x){ return x !== post.id; }); }
+    else { interestedIds.push(post.id); }
     localSet('interested-ids', JSON.stringify(interestedIds));
     refreshFeed();
-
-    var res = await client.from('posts').update({ interest_count: newCount }).eq('id', post.id);
-    if (res.error){
-      console.error('toggleInterest error', res.error);
-    }
+    await client.from('posts').update({ interest_count: newCount }).eq('id', post.id);
   }
 
-  /* ---------------- Realtime sync ---------------- */
-  // เมื่อมีใครก็ตามเพิ่ม/ลบ/แก้ไขประกาศ ทุกคนที่เปิดหน้านี้ค้างไว้จะเห็นการเปลี่ยนแปลงทันที
+  /* ---------------- Realtime ---------------- */
   var realtimeRefreshTimer = null;
   function subscribeRealtime(){
     var client = getSupabase();
     if (!client) return;
-    client
-      .channel('posts-changes')
+    client.channel('posts-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, function(){
         clearTimeout(realtimeRefreshTimer);
         realtimeRefreshTimer = setTimeout(async function(){
-          await loadPosts();
-          computeDistances();
-          refreshFeed();
+          await loadPosts(); computeDistances(); refreshFeed();
         }, 300);
-      })
-      .subscribe();
+      }).subscribe();
   }
 
-  /* ---------------- Filter / sort / render ---------------- */
+  /* ---------------- Rendering ---------------- */
   function applyFiltersAndSort(){
     var q = filters.query.trim().toLowerCase();
     visiblePosts = allPosts.filter(function(p){
@@ -862,7 +850,6 @@
       }
       return true;
     });
-
     visiblePosts.sort(function(a, b){
       if (sortMode === 'distance'){
         var ad = a._distanceKm, bd = b._distanceKm;
@@ -878,72 +865,58 @@
   function renderPostCard(p){
     var area = areaById(p.areaId);
     var isFind = p.type === 'find_group';
-    var typeLabel = isFind ? 'หาก๊วนตี' : 'ก๊วนหาคน';
     var typeClass = isFind ? 'type-find' : 'type-need';
-    var peopleLabel = isFind ? 'มา ' + p.peopleNeeded + ' คน อยากร่วมก๊วน' : 'ต้องการเพิ่มอีก ' + p.peopleNeeded + ' คน';
+    var typeLabel = isFind ? 'หาก๊วนตี' : 'ก๊วนหาคน';
+    var peopleLabel = isFind ? 'มา ' + p.peopleNeeded + ' คน' : 'รับ ' + p.peopleNeeded + ' คน';
     var lv = levelByCode(p.level);
-    var lvLabel = lv ? lv.code : p.level;
-    var lvTitle = lv ? lv.label : '';
-    var distHtml;
-    if (p._distanceKm != null){
-      distHtml = '<span class="dist">~' + p._distanceKm.toFixed(1) + ' กม. จากคุณ</span>';
-    } else {
-      distHtml = '<span class="dist unknown">ระยะทางไม่ทราบ</span>';
-    }
-    var isMine = myPostIds.indexOf(p.id) !== -1;
+    var distHtml = p._distanceKm != null ? '<span class="dist">~' + p._distanceKm.toFixed(1) + ' กม.</span>' : '<span class="dist unknown">ระยะทางไม่ทราบ</span>';
+    
+    // ตรวจสอบความเป็นเจ้าของโพสต์โดยใช้ currentUser.id แทน LocalStorage แบบเก่า
+    var isMine = (currentUser && p.userId === currentUser.id);
     var isInterested = interestedIds.indexOf(p.id) !== -1;
 
-    var deleteBtn = isMine
-      ? '<button type="button" class="icon-btn" data-action="delete" data-id="' + p.id + '" title="ลบประกาศของฉัน" aria-label="ลบประกาศ">' + svgIcon('trash') + '</button>'
-      : '';
+    var deleteBtn = isMine ? '<button type="button" class="icon-btn" data-action="delete" data-id="' + p.id + '" title="ลบประกาศของฉัน">' + svgIcon('trash') + '</button>' : '';
+    
+    // เตรียมปุ่มสำหรับระบบอนาคต (Join & Comment)
+    var featureBtns = currentUser && !isMine ? 
+      '<button type="button" class="btn btn-secondary btn-sm" onclick="alert(\'ระบบขอเข้าร่วมกำลังพัฒนาครับ\')">ขอเข้าร่วม</button>' : '';
 
     return '' +
       '<article class="card ' + typeClass + '">' +
         '<div class="card-top">' +
-          '<span class="badge ' + typeClass + '">' + typeLabel + '</span>' +
-          distHtml +
+          '<span class="badge ' + typeClass + '">' + typeLabel + '</span>' + distHtml +
         '</div>' +
         '<p class="venue">' + escapeHtml(p.venue) + '</p>' +
-        '<p class="area">' + svgIconInline('pin') + ' ' + escapeHtml(area ? area.name : 'ไม่ระบุพื้นที่') + '</p>' +
+        '<p class="area">' + svgIcon('pin') + ' ' + escapeHtml(area ? area.name : 'ไม่ระบุ') + '</p>' +
         '<div class="meta-row">' +
           '<span class="meta-item">' + svgIcon('calendar') + ' ' + escapeHtml(formatDate(p.date)) + '</span>' +
           (p.time ? '<span class="meta-item">' + svgIcon('clock') + ' ' + escapeHtml(p.time) + '</span>' : '') +
           '<span class="meta-item">' + svgIcon('users') + ' ' + peopleLabel + '</span>' +
-          '<span class="level-pill" style="background:' + levelColor(p.level) + ';" title="' + escapeHtml(lvTitle) + '">' + escapeHtml(lvLabel) + '</span>' +
+          '<span class="level-pill" style="background:' + levelColor(p.level) + ';">' + escapeHtml(lv ? lv.code : p.level) + '</span>' +
         '</div>' +
         (p.details ? '<p class="details">' + escapeHtml(p.details) + '</p>' : '') +
         '<p class="contact">ติดต่อ: ' + escapeHtml(p.contact) + '</p>' +
         '<div class="card-footer">' +
           '<span class="by-line">โดย ' + escapeHtml(p.nickname) + ' · ' + relTime(p.createdAt) + '</span>' +
           '<div class="actions">' +
+            featureBtns +
             '<button type="button" class="heart-btn" data-action="interest" data-id="' + p.id + '" aria-pressed="' + isInterested + '">' +
-              svgIcon(isInterested ? 'heartFilled' : 'heart') + ' สนใจ ' + (p.interestCount || 0) +
+              svgIcon(isInterested ? 'heartFilled' : 'heart') + ' ' + (p.interestCount || 0) +
             '</button>' +
             deleteBtn +
           '</div>' +
         '</div>' +
       '</article>';
   }
-  function svgIconInline(name){ return svgIcon(name); }
 
   function refreshFeed(){
     applyFiltersAndSort();
-    renderFeed();
-  }
-
-  function renderFeed(){
     el.loadingState.classList.add('hidden');
 
     if (!visiblePosts.length){
       el.postList.classList.add('hidden');
       el.emptyState.classList.remove('hidden');
-      if (!allPosts.length){
-        el.emptyTitle.textContent = 'ยังไม่มีประกาศในระบบ';
-        el.emptyDesc.textContent = 'เป็นคนแรกที่ลงประกาศหาก๊วน หรือหาคนตีแบดสิ!';
-      } else {
-        el.emptyTitle.textContent = 'ไม่พบประกาศที่ตรงกับตัวกรอง';
-        el.emptyDesc.textContent = 'ลองขยายระยะทาง เปลี่ยนระดับมือ หรือรีเซ็ตตัวกรองดูนะ';
-      }
+      el.emptyTitle.textContent = allPosts.length ? 'ไม่พบประกาศที่ตรงกับตัวกรอง' : 'ยังไม่มีประกาศในระบบ';
       el.resultCount.textContent = '0 ประกาศ';
       el.resultNote.textContent = '';
       return;
@@ -952,12 +925,11 @@
     el.emptyState.classList.add('hidden');
     el.postList.classList.remove('hidden');
     el.postList.innerHTML = visiblePosts.map(renderPostCard).join('');
-
     el.resultCount.textContent = visiblePosts.length + ' ประกาศ';
-    el.resultNote.textContent = myLocation ? 'เรียงตาม' + (sortMode === 'distance' ? 'ระยะใกล้คุณ' : 'โพสต์ล่าสุด') : 'ยังไม่ระบุตำแหน่ง จึงเรียงตามโพสต์ล่าสุด';
+    el.resultNote.textContent = myLocation ? (sortMode === 'distance' ? 'เรียงตามระยะทาง' : 'เรียงตามเวลา') : 'เรียงตามโพสต์ล่าสุด';
   }
 
-  /* ---------------- Event wiring ---------------- */
+  /* ---------------- Event Wiring ---------------- */
   function wireFilterEvents(){
     el.typeChips.forEach(function(chip){
       chip.addEventListener('click', function(){
@@ -967,17 +939,8 @@
         refreshFeed();
       });
     });
-
-    el.levelFilter.addEventListener('change', function(){
-      filters.level = el.levelFilter.value;
-      refreshFeed();
-    });
-
-    el.sortSelect.addEventListener('change', function(){
-      sortMode = el.sortSelect.value;
-      refreshFeed();
-    });
-
+    el.levelFilter.addEventListener('change', function(){ filters.level = el.levelFilter.value; refreshFeed(); });
+    el.sortSelect.addEventListener('change', function(){ sortMode = el.sortSelect.value; refreshFeed(); });
     el.distanceRange.addEventListener('input', function(){
       filters.maxDistance = parseInt(el.distanceRange.value, 10);
       el.distanceRangeVal.textContent = '≤ ' + filters.maxDistance + ' กม.';
@@ -985,95 +948,58 @@
     });
     el.distanceUnlimited.addEventListener('change', function(){
       filters.unlimited = el.distanceUnlimited.checked;
-      el.distanceRange.disabled = filters.unlimited;
-      refreshFeed();
+      el.distanceRange.disabled = filters.unlimited; refreshFeed();
     });
-
     var searchTimer = null;
     el.searchInput.addEventListener('input', function(){
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(function(){
-        filters.query = el.searchInput.value;
-        refreshFeed();
-      }, 180);
+      clearTimeout(searchTimer); searchTimer = setTimeout(function(){ filters.query = el.searchInput.value; refreshFeed(); }, 180);
     });
-
     el.resetFilters.addEventListener('click', function(){
       filters = { type:'all', level:'all', maxDistance:15, unlimited:false, query:'' };
       el.typeChips.forEach(function(c){ c.setAttribute('aria-pressed', c.getAttribute('data-type') === 'all'); });
-      el.levelFilter.value = 'all';
-      el.distanceRange.value = 15;
-      el.distanceRange.disabled = false;
-      el.distanceRangeVal.textContent = '≤ 15 กม.';
-      el.distanceUnlimited.checked = false;
-      el.searchInput.value = '';
-      sortMode = myLocation ? 'distance' : 'newest';
-      el.sortSelect.value = sortMode;
-      refreshFeed();
+      el.levelFilter.value = 'all'; el.distanceRange.value = 15; el.distanceRange.disabled = false;
+      el.distanceRangeVal.textContent = '≤ 15 กม.'; el.distanceUnlimited.checked = false; el.searchInput.value = '';
+      sortMode = myLocation ? 'distance' : 'newest'; el.sortSelect.value = sortMode; refreshFeed();
     });
-
-    el.locationSelect.addEventListener('change', function(){
-      if (el.locationSelect.value) setMyLocationFromArea(el.locationSelect.value);
-    });
+    el.locationSelect.addEventListener('change', function(){ if (el.locationSelect.value) setMyLocationFromArea(el.locationSelect.value); });
     el.geoBtn.addEventListener('click', useGeolocation);
   }
 
-  function openCreatePanel(){
-    el.createPanel.classList.remove('hidden');
-    el.createPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  function closeCreatePanel(){
-    el.createPanel.classList.add('hidden');
-    el.postForm.reset();
-    updatePeopleLabel();
-  }
+  function openCreatePanel(){ el.createPanel.classList.remove('hidden'); el.createPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  function closeCreatePanel(){ el.createPanel.classList.add('hidden'); el.postForm.reset(); updatePeopleLabel(); }
   function updatePeopleLabel(){
     var checked = el.postForm.querySelector('input[name="postType"]:checked');
-    var isFind = checked && checked.value === 'find_group';
-    el.fPeopleLabel.textContent = isFind ? 'ตอนนี้มีกันกี่คนที่อยากหาก๊วน?' : 'ต้องการคนเพิ่มอีกกี่คน?';
+    el.fPeopleLabel.textContent = (checked && checked.value === 'find_group') ? 'ตอนนี้มีกันกี่คนที่อยากหาก๊วน?' : 'ต้องการคนเพิ่มอีกกี่คน?';
   }
 
   function wireCreateEvents(){
-    el.toggleCreate.addEventListener('click', function(){
-      if (el.createPanel.classList.contains('hidden')) openCreatePanel();
-      else closeCreatePanel();
-    });
+    el.toggleCreate.addEventListener('click', function(){ el.createPanel.classList.contains('hidden') ? openCreatePanel() : closeCreatePanel(); });
     el.emptyCta.addEventListener('click', openCreatePanel);
     el.cancelCreate.addEventListener('click', closeCreatePanel);
-
-    el.postForm.querySelectorAll('input[name="postType"]').forEach(function(r){
-      r.addEventListener('change', updatePeopleLabel);
-    });
+    el.postForm.querySelectorAll('input[name="postType"]').forEach(function(r){ r.addEventListener('change', updatePeopleLabel); });
 
     el.postForm.addEventListener('submit', async function(ev){
       ev.preventDefault();
+      if (!currentUser){ showToast('กรุณาล็อกอินก่อนลงประกาศครับ'); return; } // ดักความปลอดภัยอีกชั้น
       var fd = new FormData(el.postForm);
       var data = {
-        postType: fd.get('postType'),
-        venue: fd.get('venue') || '',
-        areaId: fd.get('areaId'),
-        level: fd.get('level'),
-        date: fd.get('date'),
-        time: fd.get('time') || '',
-        peopleNeeded: fd.get('peopleNeeded'),
-        nickname: fd.get('nickname') || '',
-        contact: fd.get('contact') || '',
-        details: fd.get('details') || ''
+        postType: fd.get('postType'), venue: fd.get('venue') || '', areaId: fd.get('areaId'),
+        level: fd.get('level'), date: fd.get('date'), time: fd.get('time') || '',
+        peopleNeeded: fd.get('peopleNeeded'), nickname: fd.get('nickname') || '',
+        contact: fd.get('contact') || '', details: fd.get('details') || ''
       };
       if (!data.venue.trim() || !data.areaId || !data.level || !data.date || !data.nickname.trim() || !data.contact.trim()){
-        showToast('กรอกข้อมูลที่จำเป็นให้ครบก่อนนะ');
-        return;
+        showToast('กรอกข้อมูลที่จำเป็นให้ครบก่อนนะ'); return;
       }
       var submitBtn = el.postForm.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
+      submitBtn.disabled = true; submitBtn.textContent = 'กำลังบันทึก...';
+      
       var post = await createPost(data);
-      submitBtn.disabled = false;
+      submitBtn.disabled = false; submitBtn.textContent = 'ลงประกาศ';
+      
       if (post){
-        allPosts.unshift(post);
-        computeDistances();
-        refreshFeed();
-        closeCreatePanel();
-        showToast('ลงประกาศเรียบร้อยแล้ว 🏸');
+        allPosts.unshift(post); computeDistances(); refreshFeed();
+        closeCreatePanel(); showToast('ลงประกาศเรียบร้อยแล้ว 🏸');
       }
     });
   }
@@ -1082,28 +1008,24 @@
     el.postList.addEventListener('click', async function(ev){
       var btn = ev.target.closest('button[data-action]');
       if (!btn) return;
-      var id = btn.getAttribute('data-id');
-      var action = btn.getAttribute('data-action');
+      var id = btn.getAttribute('data-id'), action = btn.getAttribute('data-action');
       var post = allPosts.find(function(p){ return p.id === id; });
       if (!post) return;
 
-      if (action === 'interest'){
-        toggleInterest(post);
-      } else if (action === 'delete'){
-        if (confirm('ลบประกาศนี้ใช่ไหม?')) deletePost(id);
-      }
+      if (action === 'interest') toggleInterest(post);
+      else if (action === 'delete') { if (confirm('ลบประกาศนี้ใช่ไหม?')) deletePost(id); }
     });
   }
 
-  /* ---------------- Init ---------------- */
+  /* ---------------- Main Init ---------------- */
   async function init(){
     cacheDom();
+    setupAuth();
     populateAreaSelects();
     populateLevelSelects();
 
     var today = new Date().toISOString().slice(0,10);
-    el.fDate.min = today;
-    el.fDate.value = today;
+    el.fDate.min = today; el.fDate.value = today;
     updatePeopleLabel();
 
     wireFilterEvents();
@@ -1111,15 +1033,13 @@
     wireListEvents();
 
     loadMyLocation();
-    sortMode = myLocation ? 'distance' : 'newest';
-    el.sortSelect.value = sortMode;
+    sortMode = myLocation ? 'distance' : 'newest'; el.sortSelect.value = sortMode;
     updateLocationUI();
 
     loadPersonalLists();
     await loadPosts();
     computeDistances();
     refreshFeed();
-
     subscribeRealtime();
   }
 

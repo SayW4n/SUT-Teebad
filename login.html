@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>เข้าสู่ระบบ - SUT Teebad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --court-blue-dark: #154F65; --court-green: #2D6A4F; --cork-orange: #E0762F; --cork-orange-dark: #C25F1F;
+    --feather-cream: #FAF6EC; --card-cream: #FFFDF8; --ink: #18241F; --muted: #6B7D74; --line: #DEDACD;
+    --shadow-md: 0 6px 18px rgba(24,36,31,0.10);
+  }
+  body {
+    background: var(--feather-cream); color: var(--ink); font-family: "Noto Sans Thai", sans-serif;
+    display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 16px;
+  }
+  h1, h2 { font-family: "Chakra Petch", sans-serif; margin: 0 0 10px; color: var(--court-blue-dark); text-align: center; }
+  .login-card {
+    background: var(--card-cream); border: 1px solid var(--line); border-radius: 16px;
+    padding: 32px 24px; box-shadow: var(--shadow-md); max-width: 400px; width: 100%;
+  }
+  .text-input {
+    width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 14.5px; box-sizing: border-box;
+  }
+  .btn-primary {
+    width: 100%; background: var(--cork-orange); color: #fff; border: none; border-radius: 8px;
+    padding: 12px; font-weight: 600; cursor: pointer; font-family: "Chakra Petch", sans-serif; font-size: 15px;
+  }
+  .btn-primary:hover { background: var(--cork-orange-dark); }
+  .form-note { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff;
+    padding: 11px 18px; border-radius: 99px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <h1>SUT Teebad 🏸</h1>
+  <h2>เข้าสู่ระบบ (สำหรับนักศึกษา มทส.)</h2>
+  <p class="form-note">ใช้อีเมล @g.sut.ac.th เพื่อรับลิงก์เข้าใช้งานโดยไม่ต้องใช้รหัสผ่าน</p>
+  
+  <input type="email" id="auth-email" class="text-input" placeholder="เช่น B65xxxxx@g.sut.ac.th" />
+  <button type="button" id="btn-login" class="btn-primary">ส่งลิงก์เข้าสู่ระบบ</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://kckdkiyhktvqtibflvrl.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtja2RraXloa3R2cXRpYmZsdnJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Nzk2NDIsImV4cCI6MjA5ODM1NTY0Mn0.QxjCsXNk-KiM9ItvyCGtH2GkNG84GpNykwuEy6_AKm0';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const emailInput = document.getElementById('auth-email');
+  const loginBtn = document.getElementById('btn-login');
+  const toast = document.getElementById('toast');
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // เช็คสถานะ: ถ้ามี Session อยู่แล้ว หรือเพิ่งกดลิงก์จากอีเมลเข้ามา ให้เด้งไปหน้า app.html
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      window.location.href = 'app.html';
+    }
+  });
+
+  loginBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim().toLowerCase();
+    if (!email || !email.includes('@g.sut.ac.th')) {
+      showToast('กรุณาใช้อีเมล @g.sut.ac.th ของมหาวิทยาลัยครับ');
+      return;
+    }
+    
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'กำลังส่งลิงก์...';
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email,
+      options: {
+        // ให้ลิงก์เด้งกลับมาที่หน้า login.html เพื่อจัดการ Token ก่อนส่งไปหน้า app.html
+        emailRedirectTo: window.location.origin + window.location.pathname
+      }
+    });
+
+    if (error) {
+      showToast('เกิดข้อผิดพลาด: ' + error.message);
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'ส่งลิงก์เข้าสู่ระบบ';
+    } else {
+      showToast('ส่งลิงก์ไปที่อีเมลแล้ว! กรุณาเช็คกล่องจดหมายของคุณ');
+      loginBtn.textContent = 'ส่งสำเร็จ เช็คอีเมลเลย!';
+    }
+  });
+</script>
+</body>
+</html>
