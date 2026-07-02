@@ -50,11 +50,9 @@
   .btn-secondary{ background: transparent; border: 1.5px solid var(--court-blue); color: var(--court-blue-dark); }
   .btn-ghost{ background: transparent; color: var(--muted); border: 1px solid var(--line); }
   .btn-sm{ padding: 6px 12px; font-size: 13px; border-radius: 7px; }
+  .btn:disabled{ opacity: 0.6; cursor: not-allowed; }
 
   .spacer{ flex: 1 1 auto; }
-  .range-wrap{ display:flex; align-items:center; gap:8px; }
-  .checkbox-line{ display:flex; align-items:center; gap:6px; font-size: 13.5px; color: var(--muted); }
-
   .hidden{ display:none !important; }
   #create-panel h2{ margin: 0 0 4px; font-size: 19px; color: var(--court-blue-dark); }
   .form-note{ font-size: 13px; color: var(--muted); margin: 0 0 16px; }
@@ -62,7 +60,6 @@
   .field{ display:flex; flex-direction:column; gap:6px; }
   .field.full{ grid-column: 1 / -1; }
   .field label{ font-size: 13px; font-weight: 600; }
-  .field .hint{ font-size: 12px; color: var(--muted); font-weight: 400; }
   textarea{ resize: vertical; min-height: 64px; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%; }
 
   .type-toggle{ display:flex; gap:10px; }
@@ -74,7 +71,6 @@
 
   .status-bar{ display:flex; align-items:baseline; gap:8px; margin: 4px 4px 14px; }
   .status-bar .count{ font-weight: 700; color: var(--court-blue-dark); }
-  .status-bar .note{ color: var(--muted); font-size: 13px; }
 
   .post-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
   .card{ background: var(--card-cream); border: 1px solid var(--line); border-left: 5px solid var(--court-green); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); display:flex; flex-direction:column; gap: 10px; }
@@ -89,26 +85,33 @@
   .meta-row{ display:flex; flex-wrap:wrap; gap: 8px; font-size: 13px; }
   .meta-item{ display:flex; align-items:center; gap:5px; background: rgba(28,110,140,0.07); padding: 4px 9px; border-radius: 7px; }
   .level-pill{ font-size: 11.5px; font-weight: 700; color:#fff; padding: 3px 9px; border-radius: 999px; }
-  .details{ font-size: 13.5px; white-space: pre-wrap; word-break: break-word; }
-  .contact{ font-size: 13px; color: var(--court-blue-dark); font-weight: 600; }
   .card-footer{ display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:8px; border-top: 1px dashed var(--line); }
-  .by-line{ font-size: 12px; color: var(--muted); }
   .actions{ display:flex; gap:8px; align-items:center; }
   .icon-btn{ background:#fff; border:1px solid var(--line); border-radius: 8px; padding: 5px 7px; color: var(--muted); display:flex; align-items:center; cursor: pointer; }
   .icon-btn:hover{ color: #b33; border-color:#b33; }
   .empty, .loading{ text-align:center; padding: 48px 20px; color: var(--muted); background: var(--card-cream); border: 1px dashed var(--line); border-radius: var(--radius-lg); }
   
+  /* Comments Style */
+  .comments-section { background: rgba(0,0,0,0.02); border-radius: 8px; padding: 10px; margin-top: 8px; border: 1px solid #EFEFEF; }
+  .comment-list { max-height: 120px; overflow-y: auto; margin-bottom: 8px; font-size: 13px; }
+  .comment-item { margin-bottom: 6px; line-height: 1.4; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+  .comment-item b { color: var(--court-blue-dark); font-size: 12px; }
+  .comment-input-row { display: flex; gap: 6px; }
+  .comment-input-row input { flex: 1; padding: 6px 10px; font-size: 13px; border-radius: 6px; border: 1px solid var(--line); }
+  
   .toast{ position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(8px); background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 999px; font-size: 13.5px; opacity: 0; transition: opacity .2s, transform .2s; z-index: 50; }
   .toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* Modal Style */
+  /* Modal */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(24,36,31,0.6); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .modal-overlay.show { opacity: 1; pointer-events: auto; }
   .modal-box { background: var(--card-cream); padding: 24px; border-radius: var(--radius-lg); width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-md); }
   .req-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; background: #fff; }
 </style>
 </head>
-<body style="display: none;"> <header class="hero">
+<body style="display: none;">
+
+<header class="hero">
   <h1 class="hero-title">SUT Teebad <span>🏸</span></h1>
   <div class="user-bar">
     <span class="chip chip-green" id="user-display">👤 กำลังโหลด...</span>
@@ -144,13 +147,13 @@
       <div class="field full">
         <label>ประเภทประกาศ</label>
         <div class="type-toggle">
-          <label class="t-need"><input type="radio" name="postType" value="need_players" checked /><span>🏸 ก๊วนหาคน</span></label>
-          <label class="t-find"><input type="radio" name="postType" value="find_group" /><span>🔎 หาก๊วนตี</span></label>
+          <label class="t-need"><input type="radio" name="postType" value="need_players" checked onchange="toggleFormFields()" /><span>🏸 ก๊วนหาคน</span></label>
+          <label class="t-find"><input type="radio" name="postType" value="find_group" onchange="toggleFormFields()" /><span>🔎 หาก๊วนตี</span></label>
         </div>
       </div>
       <div class="form-grid">
-        <div class="field full"><label>ชื่อสนาม/สถานที่</label><input name="venue" class="text-input" type="text" required placeholder="เช่น ยิม 2 คอร์ท 7" /></div>
-        <div class="field"><label>ยิม/สถานที่</label><select name="areaId" id="f-area" class="text-input" required></select></div>
+        <div class="field full" id="venue-field"><label>ชื่อสนาม/สถานที่</label><input name="venue" id="f-venue" class="text-input" type="text" required placeholder="เช่น ยิม 2 คอร์ท 7" /></div>
+        <div class="field" id="area-field"><label>ยิม/สถานที่</label><select name="areaId" id="f-area" class="text-input" required></select></div>
         <div class="field"><label>ระดับมือ</label><select name="level" id="f-level" class="text-input" required></select></div>
         <div class="field"><label>วันที่</label><input name="date" id="f-date" class="text-input" type="date" required /></div>
         <div class="field"><label>เวลา</label><input name="time" class="text-input" type="text" placeholder="เช่น 18:00–20:00" /></div>
@@ -167,9 +170,9 @@
   </section>
 
   <section>
-    <div class="status-bar"><span class="count" id="result-count">—</span> <span class="note" id="result-note"></span></div>
+    <div class="status-bar"><span class="count" id="result-count">—</span></div>
     <div class="loading" id="loading-state">กำลังโหลดประกาศ...</div>
-    <div class="empty hidden" id="empty-state"><h3>ยังไม่มีประกาศ</h3><button class="btn btn-primary" id="empty-cta">+ ลงประกาศเลย</button></div>
+    <div class="empty hidden" id="empty-state"><h3>ยังไม่มีประกาศ</h3><button class="btn btn-primary" id="empty-cta" onclick="document.getElementById('toggle-create').click()">+ ลงประกาศเลย</button></div>
     <div class="post-grid hidden" id="post-list"></div>
   </section>
 </div>
@@ -192,264 +195,206 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtja2RraXloa3R2cXRpYmZsdnJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Nzk2NDIsImV4cCI6MjA5ODM1NTY0Mn0.QxjCsXNk-KiM9ItvyCGtH2GkNG84GpNykwuEy6_AKm0';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
-  let currentUser = null;
-  let currentUserRole = 'user'; // ตัวแปรเก็บสิทธิ์ Admin
+  let currentUser = null, currentUserRole = 'user';
+  let currentUserStudentId = '';
 
-  // 1. เช็ค Auth และดึงสิทธิ์ Admin
   sb.auth.getSession().then(async ({ data: { session } }) => {
-    if (!session) {
-      window.location.href = 'index.html';
-    } else {
+    if (!session) { window.location.href = 'index.html'; } 
+    else {
       currentUser = session.user;
-      const studentId = currentUser.email.split('@')[0].toUpperCase();
+      currentUserStudentId = currentUser.email.split('@')[0].toUpperCase();
       
-      // ตรวจสอบว่าเป็น Admin หรือไม่ จากตาราง user_profiles
-      const { data: profile } = await sb.from('user_profiles').select('role').eq('id', currentUser.id).single();
-      if (profile && profile.role) {
-          currentUserRole = profile.role;
-      }
+      const { data: profile } = await sb.from('user_profiles').select('role, student_id').eq('id', currentUser.id).single();
+      if (profile && profile.role) currentUserRole = profile.role;
+      if (profile && profile.student_id) currentUserStudentId = profile.student_id;
       
       const userDisplay = document.getElementById('user-display');
       if (currentUserRole === 'admin') {
-          userDisplay.textContent = '👑 Admin: ' + studentId;
+          userDisplay.textContent = '👑 Admin: ' + currentUserStudentId;
           userDisplay.style.background = 'var(--cork-orange-dark)';
           userDisplay.style.borderColor = 'var(--cork-orange-dark)';
       } else {
-          userDisplay.textContent = '👤 ' + studentId;
+          userDisplay.textContent = '👤 ' + currentUserStudentId;
       }
-
       document.body.style.display = 'block'; 
       initApp(); 
     }
   });
 
-  document.getElementById('btn-logout').addEventListener('click', async () => {
-    await sb.auth.signOut();
-    window.location.href = 'index.html';
-  });
+  document.getElementById('btn-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = 'index.html'; });
 
-  // ----------------------------------------------------
-  // ข้อมูลพื้นฐาน & ตัวแปร State
-  // ----------------------------------------------------
-  const AREAS = [
-    { id:'gym1', name:'ยิม 1 (มทส.)' }, { id:'gym2', name:'ยิม 2 (มทส.)' }
-  ];
-  const LEVELS = [
-    { code:'OPEN', label:'เปิดทุกระดับ (เล่นด้วยกันได้)', hue:null },
-    { code:'BG', label:'BG · มือใหม่สุดๆ', hue:150 }, { code:'N', label:'N · มือใหม่', hue:138 },
-    { code:'S', label:'S · มือกลาง', hue:108 }, { code:'P', label:'P · มือกลาง-ดี', hue:80 },
-    { code:'C', label:'C · มือดี', hue:46 }, { code:'B', label:'B · มือเซียน', hue:16 },
-    { code:'A', label:'A · มือโปร', hue:355 }
-  ];
+  const AREAS = [ { id:'gym1', name:'ยิม 1 (มทส.)' }, { id:'gym2', name:'ยิม 2 (มทส.)' } ];
+  const LEVELS = [ { code:'OPEN', label:'เปิดทุกระดับ' }, { code:'BG', label:'BG · มือใหม่สุดๆ' }, { code:'N', label:'N · มือใหม่' }, { code:'S', label:'S · มือกลาง' }, { code:'P', label:'P · มือกลาง-ดี' }, { code:'C', label:'C · มือดี' }, { code:'B', label:'B · มือเซียน' }, { code:'A', label:'A · มือโปร' } ];
 
-  let allPosts = [], visiblePosts = [];
-  let myRequests = []; // คำขอที่ฉันกดขอคนอื่น
-  let myPostRequests = []; // คำขอที่คนอื่นขอมาในโพสต์ฉัน
-  let filters = { type:'all', level:'all' };
+  let allPosts = [], allRequests = [], allComments = [], filters = { type:'all', level:'all' };
   let currentOpenModalPostId = null;
   
-  function showToast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2600); }
+  function showToast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000); }
   function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-  function levelColor(code){ const lv = LEVELS.find(l=>l.code===code); return lv && lv.hue ? `hsl(${lv.hue}, 60%, 40%)` : '#6B7D74'; }
-  function relTime(ts){ const m = Math.floor((Date.now()-ts)/60000); return m<1?'เมื่อสักครู่':m<60?`${m} นาทีที่แล้ว`:m<1440?`${Math.floor(m/60)} ชม.ที่แล้ว`:`${Math.floor(m/1440)} วันที่แล้ว`; }
 
-  // ----------------------------------------------------
-  // ระบบโหลดข้อมูล (Posts & Requests)
-  // ----------------------------------------------------
-  async function loadPosts(){
-    const res = await sb.from('posts').select('*').order('created_at', { ascending: false });
-    if(!res.error) {
-      allPosts = res.data.map(r => ({
-        id: r.id, userId: r.user_id, type: r.type, venue: r.venue, areaId: r.area_id, date: r.post_date,
-        time: r.post_time||'', peopleNeeded: r.people_needed, level: r.level, details: r.details||'',
-        nickname: r.nickname, contact: r.contact, createdAt: new Date(r.created_at).getTime()
-      }));
-    }
+  // Toggle Form 
+  window.toggleFormFields = function() {
+    const isFind = document.querySelector('input[name="postType"]:checked').value === 'find_group';
+    document.getElementById('venue-field').style.display = isFind ? 'none' : 'flex';
+    document.getElementById('area-field').style.display = isFind ? 'none' : 'flex';
+    document.getElementById('f-venue').required = !isFind;
+    document.getElementById('f-area').required = !isFind;
+    document.getElementById('f-people-label').textContent = isFind ? 'มีสมาชิกในก๊วนกี่คน?' : 'ต้องการคนเพิ่มกี่คน?';
   }
 
-  async function loadRequests() {
-    if (!currentUser) return;
-    
-    // 1. โหลดคำขอที่ฉันกดเข้าร่วม
-    const res1 = await sb.from('join_requests').select('*').eq('requester_id', currentUser.id);
-    if (!res1.error) myRequests = res1.data;
-
-    // 2. โหลดคำขอที่เข้ามายังโพสต์ของฉัน
-    const myPostIds = allPosts.filter(p => p.userId === currentUser.id).map(p => p.id);
-    if (myPostIds.length > 0) {
-      // ดึงข้อมูล Join กับ user_profiles เพื่อเอา student_id มาแสดงใน Modal
-      const res2 = await sb.from('join_requests')
-        .select(`id, post_id, status, user_profiles(student_id)`)
-        .in('post_id', myPostIds);
-      if (!res2.error) myPostRequests = res2.data;
-    } else {
-      myPostRequests = [];
-    }
+  async function loadData(){
+    const [resPosts, resReqs, resComms] = await Promise.all([
+      sb.from('posts').select('*').order('created_at', { ascending: false }),
+      sb.from('join_requests').select('*, user_profiles(student_id)'),
+      sb.from('comments').select('*, user_profiles(student_id)').order('created_at', { ascending: true })
+    ]);
+    if(!resPosts.error) allPosts = resPosts.data.map(r => ({ id: r.id, userId: r.user_id, type: r.type, venue: r.venue, areaId: r.area_id, date: r.post_date, time: r.post_time||'', peopleNeeded: r.people_needed, level: r.level, details: r.details||'', nickname: r.nickname, contact: r.contact }));
+    if(!resReqs.error) allRequests = resReqs.data;
+    if(!resComms.error) allComments = resComms.data;
   }
 
-  // ----------------------------------------------------
-  // UI Render (การแสดงผล Feed)
-  // ----------------------------------------------------
   function renderFeed(){
     const list = document.getElementById('post-list');
-    const empty = document.getElementById('empty-state');
     document.getElementById('loading-state').classList.add('hidden');
-    
-    visiblePosts = allPosts.filter(p => filters.type === 'all' || p.type === filters.type);
+    let visiblePosts = allPosts.filter(p => (filters.type === 'all' || p.type === filters.type) && (filters.level === 'all' || filters.level === 'OPEN' || p.level === filters.level));
 
     if(!visiblePosts.length){
-      list.classList.add('hidden'); empty.classList.remove('hidden');
+      list.classList.add('hidden'); document.getElementById('empty-state').classList.remove('hidden');
       document.getElementById('result-count').textContent = '0 ประกาศ';
     } else {
-      empty.classList.add('hidden'); list.classList.remove('hidden');
+      document.getElementById('empty-state').classList.add('hidden'); list.classList.remove('hidden');
       document.getElementById('result-count').textContent = visiblePosts.length + ' ประกาศ';
       
       list.innerHTML = visiblePosts.map(p => {
-        // เงื่อนไข Admin และเจ้าของโพสต์
         const isMine = currentUser && p.userId === currentUser.id;
         const isAdmin = currentUserRole === 'admin';
-        const canDelete = isMine || isAdmin;
+        const isFind = p.type === 'find_group';
         
-        // ปุ่มลบโพสต์ (Admin เห็นทุกคน, คนทั่วไปเห็นแค่ของตัวเอง)
-        const delBtn = canDelete ? `<button type="button" class="icon-btn" onclick="deletePost('${p.id}')" title="ลบโพสต์">🗑️</button>` : '';
-        
-        // ลอจิกปุ่ม ขอเข้าร่วม / จัดการคำขอ
+        // คำนวณโควต้าคน (นับเฉพาะที่อนุมัติแล้ว)
+        const postReqs = allRequests.filter(r => r.post_id === p.id);
+        const approvedCount = postReqs.filter(r => r.status === 'approved').length;
+        const isFull = approvedCount >= p.peopleNeeded;
+        const quotaText = `${approvedCount}/${p.peopleNeeded} คน`;
+
         let featureBtns = '';
         if (isMine) {
-            // ของตัวเอง -> โชว์ปุ่ม "จัดการคำขอ" พร้อมตัวเลขแจ้งเตือนสีแดง (ถ้ามีคนรออยู่)
-            const reqCount = myPostRequests.filter(r => r.post_id === p.id && r.status === 'pending').length;
-            const badge = reqCount > 0 ? `<span style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10.5px; margin-left:4px; font-weight:bold;">${reqCount}</span>` : '';
+            const pendingCount = postReqs.filter(r => r.status === 'pending').length;
+            const badge = pendingCount > 0 ? `<span style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10px; margin-left:4px;">${pendingCount}</span>` : '';
             featureBtns = `<button type="button" class="btn btn-secondary btn-sm" onclick="window.openRequestsModal('${p.id}')">จัดการคำขอ ${badge}</button>`;
         } else {
-            // ของคนอื่น -> เช็คสถานะการขอเข้าร่วมของเรา
-            const myReq = myRequests.find(r => r.post_id === p.id);
+            const myReq = postReqs.find(r => r.requester_id === currentUser.id);
+            const btnText = isFind ? 'ชวนมาตี' : 'ขอเข้าร่วม';
+            
             if (!myReq) {
-                featureBtns = `<button type="button" class="btn btn-primary btn-sm" onclick="window.requestToJoin('${p.id}', this)">ขอเข้าร่วม</button>`;
+                featureBtns = `<button type="button" class="btn btn-primary btn-sm" onclick="window.requestToJoin('${p.id}', this)" ${isFull ? 'disabled' : ''}>${isFull ? 'เต็มแล้ว' : btnText}</button>`;
             } else if (myReq.status === 'pending') {
                 featureBtns = `<button type="button" class="btn btn-ghost btn-sm" disabled>รอการตอบรับ...</button>`;
             } else if (myReq.status === 'approved') {
-                featureBtns = `<button type="button" class="btn btn-sm" style="background:var(--court-green); color:white;" disabled>เข้าร่วมแล้ว 🎉</button>`;
-            } else if (myReq.status === 'rejected') {
-                featureBtns = `<button type="button" class="btn btn-sm" style="background:red; color:white;" disabled>ถูกปฏิเสธ/คิวเต็ม</button>`;
+                featureBtns = `<button type="button" class="btn btn-sm" style="background:var(--court-green); color:white;" disabled>${isFind ? 'ชวนสำเร็จ 🎉' : 'เข้าร่วมแล้ว 🎉'}</button>`;
+            } else {
+                featureBtns = `<button type="button" class="btn btn-sm" style="background:red; color:white;" disabled>ถูกปฏิเสธ</button>`;
             }
         }
 
-        const areaName = AREAS.find(a=>a.id===p.areaId)?.name || 'ไม่ระบุ';
+        const areaName = isFind ? 'ไม่ระบุสถานที่ (แจมได้หมด)' : (AREAS.find(a=>a.id===p.areaId)?.name || 'ไม่ระบุ');
+        const venueName = isFind ? 'ก๊วนพร้อมบวก' : escapeHtml(p.venue);
         
-        return `<article class="card ${p.type==='find_group'?'type-find':''}">
-          <div class="card-top"><span class="badge ${p.type==='find_group'?'type-find':'type-need'}">${p.type==='find_group'?'หาก๊วนตี':'ก๊วนหาคน'}</span></div>
-          <p class="venue">${escapeHtml(p.venue)}</p><p class="area">📍 ${escapeHtml(areaName)}</p>
+        // คอมเมนต์
+        const postComments = allComments.filter(c => c.post_id === p.id);
+        const commentsHtml = postComments.map(c => `<div class="comment-item"><b>${escapeHtml(c.user_profiles?.student_id || 'User')}</b>: ${escapeHtml(c.content)}</div>`).join('');
+
+        return `<article class="card ${isFind?'type-find':''}">
+          <div class="card-top">
+             <span class="badge ${isFind?'type-find':'type-need'}">${isFind?'หาก๊วนตี':'ก๊วนหาคน'}</span>
+             <span style="font-size:12.5px; font-weight:bold; color: ${isFull?'red':'var(--court-blue-dark)'};">รับแล้ว: ${quotaText}</span>
+          </div>
+          <p class="venue">${venueName}</p><p class="area">📍 ${areaName}</p>
           <div class="meta-row">
             <span class="meta-item">📅 ${escapeHtml(p.date)}</span>
-            <span class="meta-item">👥 ${p.peopleNeeded} คน</span>
-            <span class="level-pill" style="background:${levelColor(p.level)}">${escapeHtml(p.level)}</span>
+            <span class="level-pill" style="background:var(--court-blue-dark);">${escapeHtml(p.level)}</span>
           </div>
           <p class="contact">ติดต่อ: ${escapeHtml(p.contact)}</p>
-          <div class="card-footer"><span class="by-line">โดย ${escapeHtml(p.nickname)} · ${relTime(p.createdAt)}</span>
-          <div class="actions">${featureBtns}${delBtn}</div></div>
+          
+          <div class="comments-section">
+            <div class="comment-list">${commentsHtml}</div>
+            <div class="comment-input-row">
+               <input type="text" id="comment-input-${p.id}" placeholder="พิมพ์คอมเมนต์..." onkeypress="if(event.key==='Enter') window.submitComment('${p.id}')" />
+               <button type="button" class="btn btn-secondary btn-sm" onclick="window.submitComment('${p.id}')">ส่ง</button>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <span class="by-line">โดย ${escapeHtml(p.nickname)}</span>
+            <div class="actions">
+              ${featureBtns}
+              ${(isMine || isAdmin) ? `<button type="button" class="icon-btn" onclick="deletePost('${p.id}')">🗑️</button>` : ''}
+            </div>
+          </div>
         </article>`;
       }).join('');
     }
   }
 
-  // ----------------------------------------------------
-  // ฟังก์ชันการทำงานต่างๆ (ลบ, ลงประกาศ, ขอเข้าร่วม, จัดการคำขอ)
-  // ----------------------------------------------------
+  // --- Functions ---
   window.deletePost = async function(id) {
     if(confirm('ยืนยันการลบประกาศนี้ใช่ไหม?')) {
       await sb.from('posts').delete().eq('id', id);
-      allPosts = allPosts.filter(p => p.id !== id);
-      renderFeed(); 
-      showToast('ลบประกาศเรียบร้อยแล้ว');
+      await loadData(); renderFeed(); showToast('ลบประกาศเรียบร้อยแล้ว');
     }
   }
 
   window.requestToJoin = async function(postId, btnEl) {
-    if (!currentUser) return;
-    btnEl.disabled = true;
-    btnEl.textContent = 'กำลังส่งคำขอ...';
+    btnEl.disabled = true; btnEl.textContent = 'กำลังส่ง...';
+    const { error } = await sb.from('join_requests').insert([{ post_id: postId, requester_id: currentUser.id }]);
+    if (error) { showToast('เกิดข้อผิดพลาด'); btnEl.disabled = false; btnEl.textContent = 'ลองใหม่'; } 
+    else { showToast('ส่งคำขอเรียบร้อยแล้ว!'); await loadData(); renderFeed(); }
+  }
 
-    const { data, error } = await sb.from('join_requests').insert([{
-        post_id: postId,
-        requester_id: currentUser.id
-    }]).select().single();
-
-    if (error) {
-        showToast('เกิดข้อผิดพลาดในการส่งคำขอ');
-        btnEl.disabled = false;
-        btnEl.textContent = 'ขอเข้าร่วม';
-    } else {
-        myRequests.push(data);
-        showToast('ส่งคำขอเข้าร่วมแล้ว รอเจ้าของตอบรับนะครับ');
-        renderFeed();
-    }
+  window.submitComment = async function(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const text = input.value.trim();
+    if (!text) return;
+    input.disabled = true;
+    await sb.from('comments').insert({ post_id: postId, user_id: currentUser.id, content: text });
+    input.value = ''; input.disabled = false;
+    await loadData(); renderFeed();
   }
 
   window.openRequestsModal = function(postId) {
     currentOpenModalPostId = postId;
-    const reqs = myPostRequests.filter(r => r.post_id === postId);
+    const reqs = allRequests.filter(r => r.post_id === postId);
     const listDiv = document.getElementById('req-list');
     
-    if (reqs.length === 0) {
-        listDiv.innerHTML = '<p style="text-align:center; color:var(--muted);">ยังไม่มีคนขอเข้าร่วมเลยครับ 🏸</p>';
-    } else {
+    if (reqs.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">ยังไม่มีคำขอเลยครับ</p>'; } 
+    else {
         listDiv.innerHTML = reqs.map(r => {
-            const studentId = (r.user_profiles && r.user_profiles.student_id) ? r.user_profiles.student_id : 'ข้อมูลปกปิด';
-            
-            let statusHtml = '';
+            const studentId = r.user_profiles?.student_id || 'Unknown';
             let actionBtns = '';
             if (r.status === 'pending') {
-                statusHtml = '<span style="color:var(--cork-orange);">รอการตอบรับ</span>';
-                actionBtns = `
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn btn-primary btn-sm" onclick="window.updateReqStatus('${r.id}', 'approved')">รับ</button>
-                        <button class="btn btn-ghost btn-sm" onclick="window.updateReqStatus('${r.id}', 'rejected')">ปฏิเสธ</button>
-                    </div>`;
-            } else if (r.status === 'approved') {
-                statusHtml = '<span style="color:var(--court-green); font-weight:bold;">อนุมัติแล้ว</span>';
+                actionBtns = `<button class="btn btn-primary btn-sm" onclick="window.updateReqStatus('${r.id}', 'approved')">รับ</button> <button class="btn btn-ghost btn-sm" onclick="window.updateReqStatus('${r.id}', 'rejected')">ปฏิเสธ</button>`;
             } else {
-                statusHtml = '<span style="color:red;">ปฏิเสธแล้ว</span>';
+                actionBtns = r.status === 'approved' ? '<span style="color:green;">อนุมัติแล้ว</span>' : '<span style="color:red;">ปฏิเสธแล้ว</span>';
             }
-
-            return `
-                <div class="req-item">
-                    <div>
-                        <strong>👤 ${escapeHtml(studentId)}</strong><br>
-                        <span style="font-size:12px;">สถานะ: ${statusHtml}</span>
-                    </div>
-                    ${actionBtns}
-                </div>
-            `;
+            return `<div class="req-item"><div><strong>👤 ${escapeHtml(studentId)}</strong></div> <div style="display:flex;gap:5px;">${actionBtns}</div></div>`;
         }).join('');
     }
-    
     document.getElementById('req-modal').classList.add('show');
   }
 
-  window.closeRequestsModal = function() {
-    currentOpenModalPostId = null;
-    document.getElementById('req-modal').classList.remove('show');
-  }
+  window.closeRequestsModal = function() { currentOpenModalPostId = null; document.getElementById('req-modal').classList.remove('show'); }
 
   window.updateReqStatus = async function(reqId, newStatus) {
-    const { error } = await sb.from('join_requests').update({ status: newStatus }).eq('id', reqId);
-    if (!error) {
-        const req = myPostRequests.find(r => r.id === reqId);
-        if (req) req.status = newStatus;
-        showToast(newStatus === 'approved' ? 'รับเข้าร่วมก๊วนแล้ว!' : 'ปฏิเสธคำขอแล้ว');
-        window.openRequestsModal(currentOpenModalPostId); // รีเฟรช Modal
-        renderFeed(); // รีเฟรชหน้าหลักเผื่อตัวเลขแจ้งเตือนลดลง
-    } else {
-        showToast('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
-    }
+    await sb.from('join_requests').update({ status: newStatus }).eq('id', reqId);
+    showToast(newStatus === 'approved' ? 'อนุมัติเรียบร้อย!' : 'ปฏิเสธคำขอแล้ว');
+    await loadData(); renderFeed();
+    if (currentOpenModalPostId) window.openRequestsModal(currentOpenModalPostId);
   }
 
-  // ----------------------------------------------------
-  // Init & Setup
-  // ----------------------------------------------------
   async function initApp() {
     document.getElementById('f-area').innerHTML = AREAS.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-    document.getElementById('f-level').innerHTML = LEVELS.map(l => `<option value="${l.code}">${l.label}</option>`).join('');
+    const lvOpts = LEVELS.map(l => `<option value="${l.code}">${l.label}</option>`).join('');
+    document.getElementById('f-level').innerHTML = lvOpts;
+    document.getElementById('level-filter').innerHTML = '<option value="all">ทุกระดับมือ</option>' + lvOpts;
     
     document.querySelectorAll('.chip[data-type]').forEach(chip => {
       chip.addEventListener('click', (e) => {
@@ -459,58 +404,41 @@
         renderFeed();
       });
     });
+    document.getElementById('level-filter').addEventListener('change', (e) => { filters.level = e.target.value; renderFeed(); });
 
     const pnl = document.getElementById('create-panel');
-    document.getElementById('toggle-create').onclick = () => pnl.classList.remove('hidden');
+    document.getElementById('toggle-create').onclick = () => { pnl.classList.remove('hidden'); toggleFormFields(); };
     document.getElementById('cancel-create').onclick = () => pnl.classList.add('hidden');
     
-    // จัดการตอนกดปุ่ม ลงประกาศ (ฟอร์ม)
     document.getElementById('post-form').addEventListener('submit', async function(ev){
       ev.preventDefault();
       const fd = new FormData(this);
+      const isFind = fd.get('postType') === 'find_group';
       const data = {
-        postType: fd.get('postType'), venue: fd.get('venue')||'', areaId: fd.get('areaId'),
-        level: fd.get('level'), date: fd.get('date'), time: fd.get('time')||'',
-        peopleNeeded: fd.get('peopleNeeded'), nickname: fd.get('nickname')||'',
-        contact: fd.get('contact')||'', details: fd.get('details')||''
+          user_id: currentUser.id, type: fd.get('postType'),
+          venue: isFind ? null : fd.get('venue'), area_id: isFind ? null : fd.get('areaId'),
+          post_date: fd.get('date'), post_time: fd.get('time') || null, people_needed: fd.get('peopleNeeded'),
+          level: fd.get('level'), details: fd.get('details') || null, nickname: fd.get('nickname'), contact: fd.get('contact')
       };
       
       const submitBtn = this.querySelector('button[type="submit"]');
       submitBtn.disabled = true; submitBtn.textContent = 'กำลังบันทึก...';
-      
-      const { data: postData, error } = await sb.from('posts').insert([{
-          user_id: currentUser.id, type: data.postType, venue: data.venue, area_id: data.areaId,
-          post_date: data.date, post_time: data.time || null, people_needed: data.peopleNeeded,
-          level: data.level, details: data.details || null, nickname: data.nickname, contact: data.contact
-      }]).select().single();
-
+      const { error } = await sb.from('posts').insert([data]);
       submitBtn.disabled = false; submitBtn.textContent = 'ลงประกาศ';
-      if (!error && postData){
-        await loadPosts(); // โหลดใหม่เพื่อให้แน่ใจว่าข้อมูลอัปเดตครบ
-        renderFeed();
-        pnl.classList.add('hidden');
-        this.reset();
-        showToast('ลงประกาศเรียบร้อยแล้ว 🏸');
-      } else {
-        showToast('เกิดข้อผิดพลาดในการลงประกาศ');
-      }
+      if (!error){ await loadData(); renderFeed(); pnl.classList.add('hidden'); this.reset(); showToast('ลงประกาศเรียบร้อย 🏸'); }
     });
 
-    await loadPosts();
-    await loadRequests();
-    renderFeed();
+    await loadData(); renderFeed();
     
-    // Realtime Sync สำหรับคำขอและโพสต์ (อัปเดตข้อมูลแบบสดๆ ไม่ต้องรีเฟรชหน้าเว็บ)
-    sb.channel('realtime-all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, async () => {
-        await loadPosts(); renderFeed();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'join_requests' }, async () => {
-        await loadRequests(); 
-        renderFeed();
+    // ระบบ Realtime (ถ้ามีการขอเข้าร่วมโพสต์ของเรา จะเด้งเตือน)
+    sb.channel('realtime-db').on('postgres_changes', { event: '*', schema: 'public' }, async (payload) => {
+        if (payload.table === 'join_requests' && payload.eventType === 'INSERT') {
+            const post = allPosts.find(p => p.id === payload.new.post_id);
+            if (post && post.userId === currentUser.id) showToast('🔔 มีคำขอ/คำชวนใหม่เข้ามาในโพสต์ของคุณ!');
+        }
+        await loadData(); renderFeed();
         if (currentOpenModalPostId) window.openRequestsModal(currentOpenModalPostId);
-      })
-      .subscribe();
+    }).subscribe();
   }
 })();
 </script>
