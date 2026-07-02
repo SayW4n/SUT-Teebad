@@ -42,6 +42,7 @@
   .chip{ border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 13.5px; transition: background .15s, color .15s, border-color .15s; }
   .chip[aria-pressed="true"]{ background: var(--court-blue); border-color: var(--court-blue); color: #fff; }
   .chip.chip-green { background: var(--court-green); border-color: var(--court-green); color: white; cursor: default; }
+  .chip.chip-orange { background: var(--cork-orange); border-color: var(--cork-orange); color: white; }
 
   .btn{ border: none; border-radius: 9px; padding: 10px 16px; font-weight: 600; transition: transform .08s ease; }
   .btn:active{ transform: scale(0.98); }
@@ -85,27 +86,27 @@
   .meta-row{ display:flex; flex-wrap:wrap; gap: 8px; font-size: 13px; }
   .meta-item{ display:flex; align-items:center; gap:5px; background: rgba(28,110,140,0.07); padding: 4px 9px; border-radius: 7px; }
   .level-pill{ font-size: 11.5px; font-weight: 700; color:#fff; padding: 3px 9px; border-radius: 999px; }
-  .card-footer{ display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:8px; border-top: 1px dashed var(--line); }
+  .card-footer{ display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:12px; border-top: 1px dashed var(--line); flex-wrap: wrap; gap: 10px; }
   .actions{ display:flex; gap:8px; align-items:center; }
-  .icon-btn{ background:#fff; border:1px solid var(--line); border-radius: 8px; padding: 5px 7px; color: var(--muted); display:flex; align-items:center; cursor: pointer; }
+  .icon-btn{ background:#fff; border:1px solid var(--line); border-radius: 8px; padding: 5px 7px; color: var(--muted); display:flex; align-items:center; justify-content:center; cursor: pointer; }
   .icon-btn:hover{ color: #b33; border-color:#b33; }
   .empty, .loading{ text-align:center; padding: 48px 20px; color: var(--muted); background: var(--card-cream); border: 1px dashed var(--line); border-radius: var(--radius-lg); }
-  
-  /* Comments Style */
-  .comments-section { background: rgba(0,0,0,0.02); border-radius: 8px; padding: 10px; margin-top: 8px; border: 1px solid #EFEFEF; }
-  .comment-list { max-height: 120px; overflow-y: auto; margin-bottom: 8px; font-size: 13px; }
-  .comment-item { margin-bottom: 6px; line-height: 1.4; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-  .comment-item b { color: var(--court-blue-dark); font-size: 12px; }
-  .comment-input-row { display: flex; gap: 6px; }
-  .comment-input-row input { flex: 1; padding: 6px 10px; font-size: 13px; border-radius: 6px; border: 1px solid var(--line); }
   
   .toast{ position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(8px); background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 999px; font-size: 13.5px; opacity: 0; transition: opacity .2s, transform .2s; z-index: 50; }
   .toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* Modal */
+  /* Modals */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(24,36,31,0.6); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
   .modal-overlay.show { opacity: 1; pointer-events: auto; }
-  .modal-box { background: var(--card-cream); padding: 24px; border-radius: var(--radius-lg); width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  .modal-box { background: var(--card-cream); padding: 20px; border-radius: var(--radius-lg); width: 90%; max-width: 450px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; }
+  
+  /* Comments Modal Specifics */
+  #comment-list-modal { flex: 1; overflow-y: auto; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; display: flex; flex-direction: column; gap: 8px; }
+  .comment-item { font-size: 13.5px; line-height: 1.4; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+  .comment-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .comment-item b { color: var(--court-blue-dark); font-size: 13px; }
+  .comment-item span.time { font-size: 11px; color: var(--muted); margin-left: 6px; }
+
   .req-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; background: #fff; }
 </style>
 </head>
@@ -127,6 +128,7 @@
       <button type="button" class="chip" data-type="all" aria-pressed="true">ทั้งหมด</button>
       <button type="button" class="chip" data-type="need_players" aria-pressed="false">ก๊วนหาคน</button>
       <button type="button" class="chip" data-type="find_group" aria-pressed="false">หาก๊วนตี</button>
+      <button type="button" class="chip chip-orange" data-type="my_posts" aria-pressed="false">⭐ โพสต์ของฉัน</button>
       <span class="spacer"></span>
       <span class="nav-label">เรียงตาม</span>
       <select id="sort-select" class="text-input">
@@ -179,9 +181,25 @@
 
 <div class="modal-overlay" id="req-modal">
   <div class="modal-box">
-    <h3 style="margin-top:0; color:var(--court-blue-dark);">จัดการคำขอเข้าร่วม</h3>
-    <div id="req-list" style="margin-bottom: 20px;"></div>
-    <button type="button" onclick="closeRequestsModal()" class="btn btn-ghost" style="width:100%;">ปิดหน้าต่าง</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0; color:var(--court-blue-dark);">จัดการคำขอเข้าร่วม</h3>
+      <button type="button" onclick="closeRequestsModal()" class="icon-btn" style="border:none;">❌</button>
+    </div>
+    <div id="req-list" style="margin-bottom: 20px; max-height: 50vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="comment-modal">
+  <div class="modal-box" style="height: 75vh;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0; color:var(--court-blue-dark);">💬 พูดคุยในโพสต์</h3>
+      <button type="button" onclick="closeCommentModal()" class="icon-btn" style="border:none;">❌</button>
+    </div>
+    <div id="comment-list-modal"></div>
+    <div style="display:flex; gap:8px; margin-top: 10px;">
+      <input type="text" id="modal-comment-input" class="text-input" style="flex:1; margin-bottom:0;" placeholder="พิมพ์ข้อความที่นี่..." onkeypress="if(event.key==='Enter') submitModalComment()" />
+      <button type="button" class="btn btn-primary" onclick="submitModalComment()">ส่ง</button>
+    </div>
   </div>
 </div>
 
@@ -224,15 +242,20 @@
   document.getElementById('btn-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = 'index.html'; });
 
   const AREAS = [ { id:'gym1', name:'ยิม 1 (มทส.)' }, { id:'gym2', name:'ยิม 2 (มทส.)' } ];
-  const LEVELS = [ { code:'OPEN', label:'เปิดทุกระดับ' }, { code:'BG', label:'BG · มือใหม่สุดๆ' }, { code:'N', label:'N · มือใหม่' }, { code:'S', label:'S · มือกลาง' }, { code:'P', label:'P · มือกลาง-ดี' }, { code:'C', label:'C · มือดี' }, { code:'B', label:'B · มือเซียน' }, { code:'A', label:'A · มือโปร' } ];
+  const LEVELS = [ { code:'OPEN', label:'เปิดทุกระดับ (เล่นด้วยกันได้)' }, { code:'BG', label:'BG · มือใหม่สุดๆ' }, { code:'N', label:'N · มือใหม่' }, { code:'S', label:'S · มือกลาง' }, { code:'P', label:'P · มือกลาง-ดี' }, { code:'C', label:'C · มือดี' }, { code:'B', label:'B · มือเซียน' }, { code:'A', label:'A · มือโปร' } ];
 
-  let allPosts = [], allRequests = [], allComments = [], filters = { type:'all', level:'all' };
+  let allPosts = [], allRequests = [], allComments = [], allProfiles = [], filters = { type:'all', level:'all' };
   let currentOpenModalPostId = null;
+  let currentOpenCommentPostId = null;
   
   function showToast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000); }
   function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+  function formatTime(isoString) {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
 
-  // Toggle Form 
   window.toggleFormFields = function() {
     const isFind = document.querySelector('input[name="postType"]:checked').value === 'find_group';
     document.getElementById('venue-field').style.display = isFind ? 'none' : 'flex';
@@ -243,12 +266,26 @@
   }
 
   async function loadData(){
-    const [resPosts, resReqs, resComms] = await Promise.all([
+    const [resPosts, resReqs, resComms, resProfs] = await Promise.all([
       sb.from('posts').select('*').order('created_at', { ascending: false }),
       sb.from('join_requests').select('*, user_profiles(student_id)'),
-      sb.from('comments').select('*, user_profiles(student_id)').order('created_at', { ascending: true })
+      sb.from('comments').select('*, user_profiles(student_id)').order('created_at', { ascending: true }),
+      sb.from('user_profiles').select('id, student_id')
     ]);
-    if(!resPosts.error) allPosts = resPosts.data.map(r => ({ id: r.id, userId: r.user_id, type: r.type, venue: r.venue, areaId: r.area_id, date: r.post_date, time: r.post_time||'', peopleNeeded: r.people_needed, level: r.level, details: r.details||'', nickname: r.nickname, contact: r.contact }));
+    
+    if(!resProfs.error) allProfiles = resProfs.data;
+    
+    if(!resPosts.error) {
+        allPosts = resPosts.data.map(r => {
+            const authorProf = allProfiles.find(pf => pf.id === r.user_id);
+            return { 
+                id: r.id, userId: r.user_id, type: r.type, venue: r.venue, areaId: r.area_id, 
+                date: r.post_date, time: r.post_time||'', peopleNeeded: r.people_needed, level: r.level, 
+                details: r.details||'', nickname: r.nickname, contact: r.contact, 
+                authorId: authorProf ? authorProf.student_id : 'ไม่ระบุ'
+            };
+        });
+    }
     if(!resReqs.error) allRequests = resReqs.data;
     if(!resComms.error) allComments = resComms.data;
   }
@@ -256,7 +293,15 @@
   function renderFeed(){
     const list = document.getElementById('post-list');
     document.getElementById('loading-state').classList.add('hidden');
-    let visiblePosts = allPosts.filter(p => (filters.type === 'all' || p.type === filters.type) && (filters.level === 'all' || filters.level === 'OPEN' || p.level === filters.level));
+    
+    let visiblePosts = allPosts.filter(p => {
+      let matchType = true;
+      if (filters.type === 'my_posts') matchType = (p.userId === currentUser.id);
+      else if (filters.type !== 'all') matchType = (p.type === filters.type);
+      
+      let matchLevel = (filters.level === 'all' || filters.level === 'OPEN' || p.level === filters.level);
+      return matchType && matchLevel;
+    });
 
     if(!visiblePosts.length){
       list.classList.add('hidden'); document.getElementById('empty-state').classList.remove('hidden');
@@ -270,12 +315,17 @@
         const isAdmin = currentUserRole === 'admin';
         const isFind = p.type === 'find_group';
         
-        // คำนวณโควต้าคน (นับเฉพาะที่อนุมัติแล้ว)
+        // โควต้าคน
         const postReqs = allRequests.filter(r => r.post_id === p.id);
         const approvedCount = postReqs.filter(r => r.status === 'approved').length;
         const isFull = approvedCount >= p.peopleNeeded;
         const quotaText = `${approvedCount}/${p.peopleNeeded} คน`;
 
+        // คอมเมนต์
+        const postComments = allComments.filter(c => c.post_id === p.id);
+        const commentCount = postComments.length;
+
+        // ปุ่มจัดการคำขอ / ขอเข้าร่วม
         let featureBtns = '';
         if (isMine) {
             const pendingCount = postReqs.filter(r => r.status === 'pending').length;
@@ -284,7 +334,6 @@
         } else {
             const myReq = postReqs.find(r => r.requester_id === currentUser.id);
             const btnText = isFind ? 'ชวนมาตี' : 'ขอเข้าร่วม';
-            
             if (!myReq) {
                 featureBtns = `<button type="button" class="btn btn-primary btn-sm" onclick="window.requestToJoin('${p.id}', this)" ${isFull ? 'disabled' : ''}>${isFull ? 'เต็มแล้ว' : btnText}</button>`;
             } else if (myReq.status === 'pending') {
@@ -299,9 +348,9 @@
         const areaName = isFind ? 'ไม่ระบุสถานที่ (แจมได้หมด)' : (AREAS.find(a=>a.id===p.areaId)?.name || 'ไม่ระบุ');
         const venueName = isFind ? 'ก๊วนพร้อมบวก' : escapeHtml(p.venue);
         
-        // คอมเมนต์
-        const postComments = allComments.filter(c => c.post_id === p.id);
-        const commentsHtml = postComments.map(c => `<div class="comment-item"><b>${escapeHtml(c.user_profiles?.student_id || 'User')}</b>: ${escapeHtml(c.content)}</div>`).join('');
+        // แก้ไขระดับมือ ให้โชว์ชื่อเต็ม
+        const lvObj = LEVELS.find(l => l.code === p.level);
+        const levelLabel = lvObj ? lvObj.label : p.level;
 
         return `<article class="card ${isFind?'type-find':''}">
           <div class="card-top">
@@ -311,23 +360,16 @@
           <p class="venue">${venueName}</p><p class="area">📍 ${areaName}</p>
           <div class="meta-row">
             <span class="meta-item">📅 ${escapeHtml(p.date)}</span>
-            <span class="level-pill" style="background:var(--court-blue-dark);">${escapeHtml(p.level)}</span>
+            <span class="level-pill" style="background:var(--court-blue-dark);">${escapeHtml(levelLabel)}</span>
           </div>
           <p class="contact">ติดต่อ: ${escapeHtml(p.contact)}</p>
-          
-          <div class="comments-section">
-            <div class="comment-list">${commentsHtml}</div>
-            <div class="comment-input-row">
-               <input type="text" id="comment-input-${p.id}" placeholder="พิมพ์คอมเมนต์..." onkeypress="if(event.key==='Enter') window.submitComment('${p.id}')" />
-               <button type="button" class="btn btn-secondary btn-sm" onclick="window.submitComment('${p.id}')">ส่ง</button>
-            </div>
-          </div>
 
           <div class="card-footer">
-            <span class="by-line">โดย ${escapeHtml(p.nickname)}</span>
+            <span class="by-line" style="flex:1;">โดย ${escapeHtml(p.nickname)} (${escapeHtml(p.authorId)})</span>
             <div class="actions">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="window.openCommentModal('${p.id}')">💬 คุย (${commentCount})</button>
               ${featureBtns}
-              ${(isMine || isAdmin) ? `<button type="button" class="icon-btn" onclick="deletePost('${p.id}')">🗑️</button>` : ''}
+              ${(isMine || isAdmin) ? `<button type="button" class="icon-btn" onclick="deletePost('${p.id}')" title="ลบโพสต์">🗑️</button>` : ''}
             </div>
           </div>
         </article>`;
@@ -350,44 +392,77 @@
     else { showToast('ส่งคำขอเรียบร้อยแล้ว!'); await loadData(); renderFeed(); }
   }
 
-  window.submitComment = async function(postId) {
-    const input = document.getElementById(`comment-input-${postId}`);
-    const text = input.value.trim();
-    if (!text) return;
-    input.disabled = true;
-    await sb.from('comments').insert({ post_id: postId, user_id: currentUser.id, content: text });
-    input.value = ''; input.disabled = false;
-    await loadData(); renderFeed();
-  }
-
+  // --- Modal Requests ---
   window.openRequestsModal = function(postId) {
     currentOpenModalPostId = postId;
     const reqs = allRequests.filter(r => r.post_id === postId);
     const listDiv = document.getElementById('req-list');
     
-    if (reqs.length === 0) { listDiv.innerHTML = '<p style="text-align:center;">ยังไม่มีคำขอเลยครับ</p>'; } 
+    if (reqs.length === 0) { listDiv.innerHTML = '<p style="text-align:center; color:var(--muted);">ยังไม่มีคำขอเลยครับ</p>'; } 
     else {
         listDiv.innerHTML = reqs.map(r => {
-            const studentId = r.user_profiles?.student_id || 'Unknown';
+            const studentId = r.user_profiles?.student_id || 'ไม่ทราบชื่อ';
             let actionBtns = '';
             if (r.status === 'pending') {
                 actionBtns = `<button class="btn btn-primary btn-sm" onclick="window.updateReqStatus('${r.id}', 'approved')">รับ</button> <button class="btn btn-ghost btn-sm" onclick="window.updateReqStatus('${r.id}', 'rejected')">ปฏิเสธ</button>`;
             } else {
-                actionBtns = r.status === 'approved' ? '<span style="color:green;">อนุมัติแล้ว</span>' : '<span style="color:red;">ปฏิเสธแล้ว</span>';
+                actionBtns = r.status === 'approved' ? '<span style="color:var(--court-green); font-weight:bold;">✅ อนุมัติแล้ว</span>' : '<span style="color:red; font-weight:bold;">❌ ปฏิเสธแล้ว</span>';
             }
-            return `<div class="req-item"><div><strong>👤 ${escapeHtml(studentId)}</strong></div> <div style="display:flex;gap:5px;">${actionBtns}</div></div>`;
+            return `<div class="req-item"><div><strong>👤 ${escapeHtml(studentId)}</strong></div> <div style="display:flex;gap:5px;align-items:center;">${actionBtns}</div></div>`;
         }).join('');
     }
     document.getElementById('req-modal').classList.add('show');
   }
-
   window.closeRequestsModal = function() { currentOpenModalPostId = null; document.getElementById('req-modal').classList.remove('show'); }
-
   window.updateReqStatus = async function(reqId, newStatus) {
     await sb.from('join_requests').update({ status: newStatus }).eq('id', reqId);
     showToast(newStatus === 'approved' ? 'อนุมัติเรียบร้อย!' : 'ปฏิเสธคำขอแล้ว');
     await loadData(); renderFeed();
     if (currentOpenModalPostId) window.openRequestsModal(currentOpenModalPostId);
+  }
+
+  // --- Modal Comments ---
+  window.openCommentModal = function(postId) {
+    currentOpenCommentPostId = postId;
+    renderCommentsInModal();
+    document.getElementById('comment-modal').classList.add('show');
+  }
+  window.closeCommentModal = function() { currentOpenCommentPostId = null; document.getElementById('comment-modal').classList.remove('show'); }
+  window.renderCommentsInModal = function() {
+    if (!currentOpenCommentPostId) return;
+    const listDiv = document.getElementById('comment-list-modal');
+    const postComments = allComments.filter(c => c.post_id === currentOpenCommentPostId);
+    
+    if (postComments.length === 0) {
+        listDiv.innerHTML = '<div style="text-align:center; color:var(--muted); margin-top:20px;">ยังไม่มีคอมเมนต์ เริ่มคุยกันได้เลย!</div>';
+    } else {
+        listDiv.innerHTML = postComments.map(c => `
+            <div class="comment-item">
+               <b>${escapeHtml(c.user_profiles?.student_id || 'User')}</b> 
+               <span class="time">${formatTime(c.created_at)}</span>
+               <div style="margin-top:2px;">${escapeHtml(c.content)}</div>
+            </div>
+        `).join('');
+        // Auto scroll to bottom
+        setTimeout(() => { listDiv.scrollTop = listDiv.scrollHeight; }, 10);
+    }
+  }
+  window.submitModalComment = async function() {
+    if (!currentOpenCommentPostId) return;
+    const input = document.getElementById('modal-comment-input');
+    const text = input.value.trim();
+    if (!text) return;
+    
+    input.disabled = true;
+    const { error } = await sb.from('comments').insert({ post_id: currentOpenCommentPostId, user_id: currentUser.id, content: text });
+    
+    input.value = ''; input.disabled = false; input.focus();
+    if (!error) {
+        await loadData(); renderFeed(); 
+        if (currentOpenCommentPostId) renderCommentsInModal();
+    } else {
+        showToast('เกิดข้อผิดพลาดในการส่งข้อความ');
+    }
   }
 
   async function initApp() {
@@ -430,7 +505,7 @@
 
     await loadData(); renderFeed();
     
-    // ระบบ Realtime (ถ้ามีการขอเข้าร่วมโพสต์ของเรา จะเด้งเตือน)
+    // ระบบ Realtime (อัปเดตแชทและคำขอแบบสดๆ)
     sb.channel('realtime-db').on('postgres_changes', { event: '*', schema: 'public' }, async (payload) => {
         if (payload.table === 'join_requests' && payload.eventType === 'INSERT') {
             const post = allPosts.find(p => p.id === payload.new.post_id);
@@ -438,6 +513,7 @@
         }
         await loadData(); renderFeed();
         if (currentOpenModalPostId) window.openRequestsModal(currentOpenModalPostId);
+        if (currentOpenCommentPostId) window.renderCommentsInModal();
     }).subscribe();
   }
 })();
