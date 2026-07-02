@@ -47,7 +47,7 @@
   <h2>เข้าสู่ระบบ (สำหรับนักศึกษา มทส.)</h2>
   <p class="form-note">ใช้อีเมล @g.sut.ac.th เพื่อรับลิงก์เข้าใช้งานโดยไม่ต้องใช้รหัสผ่าน</p>
   
-  <input type="email" id="auth-email" class="text-input" placeholder="เช่น B65xxxxx@g.sut.ac.th" />
+  <input type="email" id="auth-email" class="text-input" placeholder="เช่น B66xxxxx@g.sut.ac.th" />
   <button type="button" id="btn-login" class="btn-primary">ส่งลิงก์เข้าสู่ระบบ</button>
 </div>
 
@@ -87,11 +87,39 @@
         return;
       }
       
-      // ปิดปุ่มและเปลี่ยนข้อความระหว่างรอ
+      // ปิดปุ่มระหว่างรอ
       loginBtn.disabled = true;
+
+      // --------------------------------------------------
+      // 🔥 ทางลับสำหรับ ADMIN (ล็อกอินด้วย Password) 🔥
+      // --------------------------------------------------
+      if (email === 'adminwan@g.sut.ac.th') {
+        const pwd = prompt('🔒 กรุณาใส่รหัสผ่าน Admin:');
+        
+        if (pwd) {
+          loginBtn.textContent = 'กำลังตรวจสอบรหัสผ่าน...';
+          const { error } = await sbClient.auth.signInWithPassword({
+            email: email,
+            password: pwd
+          });
+
+          if (error) {
+            showToast('รหัสผ่านไม่ถูกต้อง หรือยังไม่ได้สร้างไอดีนี้ในระบบ');
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'ส่งลิงก์เข้าสู่ระบบ';
+          } else {
+            showToast('ยินดีต้อนรับ Admin!');
+            // ระบบจะเด้งไปหน้า dashboard เองผ่าน onAuthStateChange
+          }
+        } else {
+          loginBtn.disabled = false; // กดยกเลิก prompt
+        }
+        return; // จบการทำงาน ไม่ต้องไปต่อที่ระบบส่ง OTP
+      }
+      // --------------------------------------------------
+
+      // ระบบส่งลิงก์ OTP ปกติสำหรับผู้ใช้ทั่วไป
       loginBtn.textContent = 'กำลังส่งลิงก์...';
-      
-      // สั่งส่ง OTP ไปที่อีเมล
       const { error } = await sbClient.auth.signInWithOtp({
         email: email,
         options: {
