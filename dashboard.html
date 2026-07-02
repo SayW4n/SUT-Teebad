@@ -154,7 +154,7 @@
         </div>
       </div>
       <div class="form-grid">
-        <div class="field full" id="venue-field"><label>ชื่อสนาม/สถานที่</label><input name="venue" id="f-venue" class="text-input" type="text" required placeholder="เช่น ยิม 2 คอร์ท 7" /></div>
+        <div class="field full" id="venue-field"><label id="venue-label">ชื่อสนาม/สถานที่</label><input name="venue" id="f-venue" class="text-input" type="text" required placeholder="เช่น ยิม 2 คอร์ท 7" /></div>
         <div class="field" id="area-field"><label>ยิม/สถานที่</label><select name="areaId" id="f-area" class="text-input" required></select></div>
         <div class="field"><label>ระดับมือ</label><select name="level" id="f-level" class="text-input" required></select></div>
         <div class="field"><label>วันที่</label><input name="date" id="f-date" class="text-input" type="date" required /></div>
@@ -198,7 +198,7 @@
     <div id="comment-list-modal"></div>
     <div style="display:flex; gap:8px; margin-top: 10px;">
       <input type="text" id="modal-comment-input" class="text-input" style="flex:1; margin-bottom:0;" placeholder="พิมพ์ข้อความที่นี่..." onkeypress="if(event.key==='Enter') submitModalComment()" />
-      <button type="button" class="btn btn-primary" onclick="submitModalComment()">ส่ง</button>
+      <button type="button" class="btn btn-primary" id="btn-send-comment" onclick="submitModalComment()">ส่ง</button>
     </div>
   </div>
 </div>
@@ -242,7 +242,7 @@
   document.getElementById('btn-logout').addEventListener('click', async () => { await sb.auth.signOut(); window.location.href = 'index.html'; });
 
   const AREAS = [ { id:'gym1', name:'ยิม 1 (มทส.)' }, { id:'gym2', name:'ยิม 2 (มทส.)' } ];
-  const LEVELS = [ { code:'OPEN', label:'เปิดทุกระดับ (เล่นด้วยกันได้)' }, { code:'BG', label:'BG · มือใหม่สุดๆ' }, { code:'N', label:'N · มือใหม่' }, { code:'S', label:'S · มือกลาง' }, { code:'P', label:'P · มือกลาง-ดี' }, { code:'C', label:'C · มือดี' }, { code:'B', label:'B · มือเซียน' }, { code:'A', label:'A · มือโปร' } ];
+  const LEVELS = [ { code:'OPEN', label:'เปิดทุกระดับ' }, { code:'BG', label:'BG · มือใหม่สุดๆ' }, { code:'N', label:'N · มือใหม่' }, { code:'S', label:'S · มือกลาง' }, { code:'P', label:'P · มือกลาง-ดี' }, { code:'C', label:'C · มือดี' }, { code:'B', label:'B · มือเซียน' }, { code:'A', label:'A · มือโปร' } ];
 
   let allPosts = [], allRequests = [], allComments = [], allProfiles = [], filters = { type:'all', level:'all' };
   let currentOpenModalPostId = null;
@@ -256,12 +256,23 @@
       return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
 
+  // ปรับปรุงฟังก์ชันสลับฟอร์ม (เปลี่ยนชื่อ label ของช่องสนาม)
   window.toggleFormFields = function() {
     const isFind = document.querySelector('input[name="postType"]:checked').value === 'find_group';
-    document.getElementById('venue-field').style.display = isFind ? 'none' : 'flex';
-    document.getElementById('area-field').style.display = isFind ? 'none' : 'flex';
-    document.getElementById('f-venue').required = !isFind;
-    document.getElementById('f-area').required = !isFind;
+    const venueLabel = document.getElementById('venue-label');
+    const venueInput = document.getElementById('f-venue');
+
+    if (isFind) {
+      venueLabel.textContent = 'หัวข้อประกาศ';
+      venueInput.placeholder = 'เช่น มี 2 คนค่า มือ BG';
+      document.getElementById('area-field').style.display = 'none';
+      document.getElementById('f-area').required = false;
+    } else {
+      venueLabel.textContent = 'ชื่อสนาม/สถานที่';
+      venueInput.placeholder = 'เช่น ยิม 2 คอร์ท 7';
+      document.getElementById('area-field').style.display = 'flex';
+      document.getElementById('f-area').required = true;
+    }
     document.getElementById('f-people-label').textContent = isFind ? 'มีสมาชิกในก๊วนกี่คน?' : 'ต้องการคนเพิ่มกี่คน?';
   }
 
@@ -294,12 +305,22 @@
     const list = document.getElementById('post-list');
     document.getElementById('loading-state').classList.add('hidden');
     
+    // คำนวณวันที่ปัจจุบัน (เพื่อใช้กรองโพสต์เก่าทิ้ง)
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
     let visiblePosts = allPosts.filter(p => {
+      // 1. กรองทิ้งหากวันที่ผ่านไปแล้ว
+      if (p.date < todayStr) return false;
+
+      // 2. กรองตามประเภท (ทั้งหมด, หาคน, หาก๊วน, ของฉัน)
       let matchType = true;
       if (filters.type === 'my_posts') matchType = (p.userId === currentUser.id);
       else if (filters.type !== 'all') matchType = (p.type === filters.type);
       
+      // 3. กรองตามระดับมือ
       let matchLevel = (filters.level === 'all' || filters.level === 'OPEN' || p.level === filters.level);
+      
       return matchType && matchLevel;
     });
 
@@ -346,11 +367,14 @@
         }
 
         const areaName = isFind ? 'ไม่ระบุสถานที่ (แจมได้หมด)' : (AREAS.find(a=>a.id===p.areaId)?.name || 'ไม่ระบุ');
-        const venueName = isFind ? 'ก๊วนพร้อมบวก' : escapeHtml(p.venue);
+        const venueName = escapeHtml(p.venue); // ดึงข้อมูลที่ผู้ใช้กรอกมาแสดงเลย
         
-        // แก้ไขระดับมือ ให้โชว์ชื่อเต็ม
+        // ดึงชื่อเต็มของระดับมือ
         const lvObj = LEVELS.find(l => l.code === p.level);
         const levelLabel = lvObj ? lvObj.label : p.level;
+
+        // เช็คว่าไอดีคนโพสต์คือ adminwan หรือไม่ ถ้าใช่ให้ซ่อนรหัสนักศึกษาไว้
+        const authorDisplay = (p.authorId.toLowerCase() === 'adminwan') ? '' : ` (${escapeHtml(p.authorId)})`;
 
         return `<article class="card ${isFind?'type-find':''}">
           <div class="card-top">
@@ -365,7 +389,7 @@
           <p class="contact">ติดต่อ: ${escapeHtml(p.contact)}</p>
 
           <div class="card-footer">
-            <span class="by-line" style="flex:1;">โดย ${escapeHtml(p.nickname)} (${escapeHtml(p.authorId)})</span>
+            <span class="by-line" style="flex:1;">โดย ${escapeHtml(p.nickname)}${authorDisplay}</span>
             <div class="actions">
               <button type="button" class="btn btn-ghost btn-sm" onclick="window.openCommentModal('${p.id}')">💬 คุย (${commentCount})</button>
               ${featureBtns}
@@ -443,25 +467,28 @@
                <div style="margin-top:2px;">${escapeHtml(c.content)}</div>
             </div>
         `).join('');
-        // Auto scroll to bottom
         setTimeout(() => { listDiv.scrollTop = listDiv.scrollHeight; }, 10);
     }
   }
   window.submitModalComment = async function() {
     if (!currentOpenCommentPostId) return;
     const input = document.getElementById('modal-comment-input');
+    const sendBtn = document.getElementById('btn-send-comment');
     const text = input.value.trim();
     if (!text) return;
     
-    input.disabled = true;
+    input.disabled = true; sendBtn.disabled = true;
+    
+    // แทรกการดัก Error ไว้เผื่อมีการปิด RLS ไม่สมบูรณ์
     const { error } = await sb.from('comments').insert({ post_id: currentOpenCommentPostId, user_id: currentUser.id, content: text });
     
-    input.value = ''; input.disabled = false; input.focus();
+    input.value = ''; input.disabled = false; sendBtn.disabled = false; input.focus();
     if (!error) {
         await loadData(); renderFeed(); 
         if (currentOpenCommentPostId) renderCommentsInModal();
     } else {
-        showToast('เกิดข้อผิดพลาดในการส่งข้อความ');
+        console.error("Comment Insert Error:", error);
+        showToast('เกิดข้อผิดพลาดในการส่ง: โปรดเช็คการตั้งค่า RLS ในฐานข้อมูล');
     }
   }
 
@@ -491,7 +518,8 @@
       const isFind = fd.get('postType') === 'find_group';
       const data = {
           user_id: currentUser.id, type: fd.get('postType'),
-          venue: isFind ? null : fd.get('venue'), area_id: isFind ? null : fd.get('areaId'),
+          venue: fd.get('venue'), // รับค่าที่ผู้ใช้กรอกมา
+          area_id: isFind ? null : fd.get('areaId'),
           post_date: fd.get('date'), post_time: fd.get('time') || null, people_needed: fd.get('peopleNeeded'),
           level: fd.get('level'), details: fd.get('details') || null, nickname: fd.get('nickname'), contact: fd.get('contact')
       };
